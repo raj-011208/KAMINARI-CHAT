@@ -27,6 +27,7 @@ interface SidebarProps {
   stories: Story[];
   activeChatId: string | null;
   onSelectChat: (chatId: string) => void;
+  onSelectUser?: (userId: string) => void;
   onOpenNewChat: () => void;
   onOpenStory: (storyIndex: number) => void;
   onOpenCreateStory: () => void;
@@ -44,6 +45,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   stories,
   activeChatId,
   onSelectChat,
+  onSelectUser,
   onOpenNewChat,
   onOpenStory,
   onOpenCreateStory,
@@ -348,7 +350,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
             {filteredUsers.map((user) => (
               <div
                 key={user.id}
-                onClick={onOpenNewChat}
+                onClick={() => {
+                  if (onSelectUser) {
+                    onSelectUser(user.id);
+                  } else {
+                    onOpenNewChat();
+                  }
+                }}
                 className="flex items-center justify-between p-2.5 rounded-2xl hover:bg-white/5 border border-transparent hover:border-white/10 transition-all cursor-pointer group"
               >
                 <div className="flex items-center gap-3 truncate">

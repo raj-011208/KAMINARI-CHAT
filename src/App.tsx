@@ -167,6 +167,17 @@ export default function App() {
     setClearChatTargetId(null);
   };
 
+  const handleSelectUser = async (userId: string) => {
+    if (!currentUser) return;
+    try {
+      const directChat = await kaminariBackend.createDirectChat(userId);
+      setActiveChatId(directChat.id);
+      setMobileSidebarOpen(false);
+    } catch (err) {
+      console.error('Select user chat error:', err);
+    }
+  };
+
   const handleStoryReply = async (recipientId: string, replyText: string) => {
     if (!currentUser) return;
     const directChat = await kaminariBackend.createDirectChat(recipientId);
@@ -225,6 +236,7 @@ export default function App() {
                       setActiveChatId(id);
                       setMobileSidebarOpen(false);
                     }}
+                    onSelectUser={handleSelectUser}
                     onOpenNewChat={() => setShowNewChatModal(true)}
                     onOpenStory={(idx) => setActiveStoryIndex(idx)}
                     onOpenCreateStory={() => setShowCreateStoryModal(true)}

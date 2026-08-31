@@ -60,6 +60,8 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
   const [deleteConfirmMsgId, setDeleteConfirmMsgId] = useState<string | null>(null);
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [globalBroadcast, setGlobalBroadcast] = useState<SystemAnnouncement | null>(null);
+  const [showPartnerModal, setShowPartnerModal] = useState(false);
+  const [inspectUser, setInspectUser] = useState<User | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -69,15 +71,18 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
     ? chat.participants.find((p) => p !== currentUser.id)
     : null;
   const otherUser = otherId ? allUsers.find((u) => u.id === otherId) : null;
-  const otherDetail = otherId ? chat.participantDetails[otherId] : null;
+  const otherDetail = otherId ? chat.participantDetails?.[otherId] : null;
 
   const chatTitle = chat.isGroup
     ? chat.name
-    : otherDetail?.fullName || otherUser?.fullName || 'Operative';
+    : otherUser?.fullName || otherDetail?.fullName || 'Operative';
   const chatAvatar = chat.isGroup
     ? chat.avatar || 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=400&auto=format&fit=crop&q=80'
-    : otherDetail?.avatar || otherUser?.avatar;
-  const isPeerOnline = otherUser?.status === 'online';
+    : otherUser?.avatar || otherDetail?.avatar || 'https://images.unsplash.com/photo-1566492031773-4f4e44671857?w=400&auto=format&fit=crop&q=80';
+  const chatUsername = !chat.isGroup
+    ? otherUser?.username || otherDetail?.username || 'operative'
+    : '';
+  const isPeerOnline = otherUser ? otherUser.status === 'online' : true;
 
   // Real-time messages & settings listener
   useEffect(() => {
@@ -232,8 +237,8 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
   return (
     <div className="relative w-full h-full flex flex-col bg-[#0d0d12]/95 backdrop-blur-xl">
       {/* Top Chat Header */}
-      <div className="h-20 px-4 sm:px-6 border-b border-white/5 bg-black/20 backdrop-blur-md flex items-center justify-between z-20 shadow-md">
-        <div className="flex items-center gap-3">
+      <div className="h-20 px-3 sm:px-6 border-b border-white/5 bg-black/20 backdrop-blur-md flex items-center justify-between z-20 shadow-md">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
           {/* Back Button (Mobile and Desktop) */}
           {(onBack || onOpenSidebar) && (
             <button
@@ -242,58 +247,84 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                 if (onBack) onBack();
                 else if (onOpenSidebar) onOpenSidebar();
               }}
-              className="p-2.5 rounded-2xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 transition-all cursor-pointer flex items-center gap-1.5 text-xs font-mono group"
-              title="Back to Transmissions"
+              className="p-2 sm:p-2.5 rounded-2xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 transition-all cursor-pointer flex items-center gap-1 text-xs font-mono group shrink-0"
+              title="Back to User & Chat Transmissions"
             >
-              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-              <span className="hidden sm:inline">BACK</span>
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform text-cyan-400" />
+              <span className="font-bold text-[11px] text-cyan-300">CHATS</span>
             </button>
           )}
 
-          {/* Participant Avatar with Electric Ring */}
-          <div className="relative">
-            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl p-[2px] bg-gradient-to-tr from-[#00f3ff] to-[#9d00ff] shadow-[0_0_20px_rgba(0,243,255,0.4)]">
-              <img
-                src={chatAvatar}
-                alt={chatTitle}
-                className="w-full h-full rounded-[14px] object-cover border border-[#0d0d12]"
-                referrerPolicy="no-referrer"
-              />
+          {/* Participant Avatar & Info (Clickable for Profile Modal) */}
+          <div
+            onClick={() => {
+              if (!chat.isGroup) {
+                if (otherUser) {
+                  setInspectUser(otherUser);
+                } else if (otherDetail && otherId) {
+                  setInspectUser({
+                    id: otherId,
+                    username: otherDetail.username,
+                    fullName: otherDetail.fullName,
+                    avatar: otherDetail.avatar,
+                    email: `${otherDetail.username}@kaminari.net`,
+                    bio: '⚡ Operative connected on encrypted frequency.',
+                    status: isPeerOnline ? 'online' : 'offline',
+                    lastSeen: Date.now(),
+                    createdAt: Date.now(),
+                    role: 'user',
+                  });
+                }
+                setShowPartnerModal(true);
+              }
+            }}
+            className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 cursor-pointer group/user p-1 rounded-2xl hover:bg-white/5 transition-colors"
+            title="Tap to view full user profile"
+          >
+            <div className="relative shrink-0">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl p-[2px] bg-gradient-to-tr from-[#00f3ff] to-[#9d00ff] shadow-[0_0_15px_rgba(0,243,255,0.4)] group-hover/user:scale-105 transition-transform">
+                <img
+                  src={chatAvatar}
+                  alt={chatTitle}
+                  className="w-full h-full rounded-[14px] object-cover border border-[#0d0d12]"
+                  referrerPolicy="no-referrer"
+                />
+              </div>
+              {!chat.isGroup && (
+                <span
+                  className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#0d0d12] ${
+                    isPeerOnline ? 'bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]' : 'bg-slate-600'
+                  }`}
+                />
+              )}
             </div>
-            {!chat.isGroup && (
-              <span
-                className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-[#0d0d12] ${
-                  isPeerOnline ? 'bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]' : 'bg-slate-600'
-                }`}
-              />
-            )}
-          </div>
 
-          <div>
-            <h2 className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
-              <span>{chatTitle}</span>
-              {!chat.isGroup && otherDetail && (
-                <span className="text-xs font-mono text-cyan-400 font-normal">
-                  @{otherDetail.username}
-                </span>
-              )}
-            </h2>
-            <div className="text-[11px] font-mono text-slate-400 flex items-center gap-1.5">
-              {typingUsers.length > 0 ? (
-                <span className="text-cyan-400 flex items-center gap-1 font-bold animate-pulse">
-                  <Zap className="w-3 h-3 text-cyan-400 animate-bounce" />
-                  Transmitting data...
-                </span>
-              ) : chat.isGroup ? (
-                <span>{chat.participants.length} connected operatives</span>
-              ) : isPeerOnline ? (
-                <span className="text-emerald-400 flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
-                  Signal Active Now
-                </span>
-              ) : (
-                <span>Offline • Last seen recently</span>
-              )}
+            <div className="min-w-0 flex-1">
+              <h2 className="text-xs sm:text-base font-bold text-white flex items-center gap-1.5 truncate">
+                <span className="truncate group-hover/user:text-cyan-300 transition-colors">{chatTitle}</span>
+                {!chat.isGroup && chatUsername && (
+                  <span className="text-[11px] font-mono text-cyan-400 font-normal shrink-0">
+                    @{chatUsername}
+                  </span>
+                )}
+              </h2>
+              <div className="text-[10px] sm:text-[11px] font-mono text-slate-400 flex items-center gap-1 truncate">
+                {typingUsers.length > 0 ? (
+                  <span className="text-cyan-400 flex items-center gap-1 font-bold animate-pulse">
+                    <Zap className="w-3 h-3 text-cyan-400 animate-bounce" />
+                    Transmitting data...
+                  </span>
+                ) : chat.isGroup ? (
+                  <span>{chat.participants.length} connected operatives</span>
+                ) : isPeerOnline ? (
+                  <span className="text-emerald-400 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
+                    Signal Active Now
+                  </span>
+                ) : (
+                  <span>Offline • Tap profile info</span>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -449,7 +480,28 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                     <img
                       src={msg.senderAvatar}
                       alt={msg.senderName}
-                      className="w-8 h-8 rounded-xl object-cover border border-white/10 mt-1 shrink-0"
+                      onClick={() => {
+                        const found = allUsers.find((u) => u.id === msg.senderId);
+                        if (found) {
+                          setInspectUser(found);
+                        } else {
+                          setInspectUser({
+                            id: msg.senderId,
+                            username: msg.senderName.toLowerCase().replace(/\s+/g, '_'),
+                            fullName: msg.senderName,
+                            avatar: msg.senderAvatar,
+                            email: `${msg.senderName.toLowerCase()}@kaminari.net`,
+                            bio: '⚡ Operative transmitting on grid.',
+                            status: 'online',
+                            lastSeen: Date.now(),
+                            createdAt: Date.now(),
+                            role: 'user',
+                          });
+                        }
+                        setShowPartnerModal(true);
+                      }}
+                      className="w-8 h-8 rounded-xl object-cover border border-white/10 mt-1 shrink-0 cursor-pointer hover:border-cyan-400 transition-colors"
+                      title={`View ${msg.senderName}'s Profile`}
                       referrerPolicy="no-referrer"
                     />
                   )}
@@ -827,6 +879,122 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                 </button>
               </div>
             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Cyberpunk Operative Profile Modal */}
+      <AnimatePresence>
+        {showPartnerModal && inspectUser && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowPartnerModal(false)}
+            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xl flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 10 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 10 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-sm rounded-3xl bg-[#12121e]/95 border border-cyan-500/30 p-6 shadow-[0_0_40px_rgba(0,243,255,0.25)] backdrop-blur-2xl relative"
+            >
+              <button
+                type="button"
+                onClick={() => setShowPartnerModal(false)}
+                className="absolute top-4 right-4 p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer border border-white/10"
+                title="Close Profile"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="text-center pt-2 pb-4">
+                <div className="relative inline-block mb-3">
+                  <div className="w-20 h-20 rounded-2xl p-[3px] bg-gradient-to-tr from-[#00f3ff] to-[#9d00ff] shadow-[0_0_25px_rgba(0,243,255,0.4)]">
+                    <img
+                      src={inspectUser.avatar}
+                      alt={inspectUser.fullName}
+                      className="w-full h-full rounded-[13px] object-cover border-2 border-[#0d0d12]"
+                      referrerPolicy="no-referrer"
+                    />
+                  </div>
+                  <span
+                    className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-[#0d0d12] ${
+                      inspectUser.status === 'online'
+                        ? 'bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.9)]'
+                        : inspectUser.status === 'away'
+                        ? 'bg-amber-400'
+                        : 'bg-slate-600'
+                    }`}
+                  />
+                </div>
+
+                <h3 className="text-lg font-bold text-white font-display flex items-center justify-center gap-1.5">
+                  <span>{inspectUser.fullName}</span>
+                </h3>
+                <div className="text-xs font-mono text-cyan-400 mt-0.5">
+                  @{inspectUser.username}
+                </div>
+
+                <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-[11px] font-mono text-cyan-300">
+                  <span className={`w-2 h-2 rounded-full ${inspectUser.status === 'online' ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'}`} />
+                  {inspectUser.status === 'online' ? 'ONLINE ON GRID' : 'OFFLINE TRANSMITTER'}
+                </div>
+              </div>
+
+              <div className="space-y-3 pt-3 border-t border-white/10 text-xs">
+                <div>
+                  <div className="text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-1">
+                    Operative Bio & Status
+                  </div>
+                  <p className="text-slate-200 bg-white/5 p-3 rounded-2xl border border-white/5 font-sans leading-relaxed">
+                    {inspectUser.bio || '⚡ Cyberpunk operative transmitting on secure Kaminari grid frequencies.'}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="p-2.5 rounded-2xl bg-white/5 border border-white/5">
+                    <div className="text-[10px] font-mono text-slate-400 uppercase">CLEARANCE</div>
+                    <div className="text-xs font-bold text-purple-300 uppercase mt-0.5">
+                      {inspectUser.role === 'admin' ? '🛡️ SYSTEM ADMIN' : '⚡ OPERATIVE'}
+                    </div>
+                  </div>
+                  <div className="p-2.5 rounded-2xl bg-white/5 border border-white/5">
+                    <div className="text-[10px] font-mono text-slate-400 uppercase">EMAIL ADDRESS</div>
+                    <div className="text-xs font-mono text-cyan-300 truncate mt-0.5">
+                      {inspectUser.email}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Call Actions */}
+                <div className="grid grid-cols-2 gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowPartnerModal(false);
+                      onStartCall(false);
+                    }}
+                    className="py-2.5 px-3 rounded-2xl bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-500/40 font-mono font-bold flex items-center justify-center gap-2 cursor-pointer transition-all hover:scale-[1.02]"
+                  >
+                    <Phone className="w-4 h-4" />
+                    Audio Call
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowPartnerModal(false);
+                      onStartCall(true);
+                    }}
+                    className="py-2.5 px-3 rounded-2xl bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 border border-purple-500/40 font-mono font-bold flex items-center justify-center gap-2 cursor-pointer transition-all hover:scale-[1.02]"
+                  >
+                    <Video className="w-4 h-4" />
+                    Video Call
+                  </button>
+                </div>
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
