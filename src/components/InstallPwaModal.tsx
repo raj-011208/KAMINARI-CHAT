@@ -100,23 +100,23 @@ export const InstallPwaModal: React.FC<InstallPwaModalProps> = ({ isOpen, onClos
           </p>
         </div>
 
-        {/* IFRAME WARNING & OPEN IN NEW TAB TRIGGER */}
-        {isInIframe && (
-          <div className="mb-5 p-4 rounded-2xl bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-transparent border border-amber-500/30 text-amber-200 text-xs font-mono space-y-2">
-            <div className="flex items-center gap-2 text-amber-400 font-bold font-display text-sm">
-              <ExternalLink className="w-4 h-4 shrink-0" />
-              <span>Preview Window Detected</span>
+        {/* IFRAME DETECTED BANNER */}
+        {isInIframe && !isInstalled && (
+          <div className="mb-5 p-4 rounded-2xl bg-gradient-to-r from-amber-500/20 via-orange-500/15 to-amber-950/30 border border-amber-500/40 text-amber-200 text-xs font-mono space-y-3 shadow-[0_0_20px_rgba(245,158,11,0.2)]">
+            <div className="flex items-center gap-2 text-amber-300 font-bold font-display text-sm">
+              <ExternalLink className="w-4 h-4 shrink-0 text-amber-400 animate-pulse" />
+              <span>Preview Frame Notice</span>
             </div>
-            <p className="text-[11px] text-amber-300/90 leading-relaxed">
-              Browsers block app installation inside embedded previews. Open Kaminari in a direct browser tab to install it with 1 click!
+            <p className="text-[11px] text-amber-200/90 leading-relaxed">
+              Browsers block direct PWA installation inside embedded preview panes. Click below to open Kaminari in a standalone browser tab where the native 1-Click Install prompt will activate!
             </p>
             <button
               type="button"
               onClick={handleOpenNewTab}
-              className="w-full py-2.5 px-3 rounded-xl bg-amber-400 text-black font-mono font-bold text-xs uppercase tracking-wider hover:bg-amber-300 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_15px_rgba(245,158,11,0.3)]"
+              className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-black font-mono font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_20px_rgba(245,158,11,0.4)] hover:scale-[1.02] active:scale-95"
             >
               <ExternalLink className="w-4 h-4" />
-              OPEN IN NEW TAB TO INSTALL
+              OPEN FULL TAB TO INSTALL APP
             </button>
           </div>
         )}
@@ -135,71 +135,69 @@ export const InstallPwaModal: React.FC<InstallPwaModalProps> = ({ isOpen, onClos
             <button
               type="button"
               onClick={handleInstallClick}
-              className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-[#00f3ff] via-cyan-400 to-[#9d00ff] text-black font-mono font-bold text-xs uppercase tracking-wider hover:brightness-110 hover:scale-[1.02] active:scale-95 transition-all shadow-[0_0_25px_rgba(0,243,255,0.4)] flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full py-4 px-4 rounded-2xl bg-gradient-to-r from-[#00f3ff] via-cyan-400 to-[#9d00ff] text-black font-mono font-bold text-xs uppercase tracking-wider hover:brightness-110 hover:scale-[1.02] active:scale-95 transition-all shadow-[0_0_30px_rgba(0,243,255,0.5)] flex items-center justify-center gap-2 cursor-pointer"
             >
-              <Download className="w-4 h-4 animate-bounce" />
-              CLICK TO INSTALL APP NOW
+              <Download className="w-5 h-5 animate-bounce" />
+              INSTALL KAMINARI NATIVE APP NOW
             </button>
           </div>
         ) : isIOS ? (
           <div className="space-y-3 bg-black/40 border border-white/10 rounded-2xl p-4 text-xs font-mono text-slate-300">
-            <div className="text-cyan-400 font-bold font-display text-sm mb-1">How to Install on iOS (Safari):</div>
+            <div className="text-cyan-400 font-bold font-display text-sm mb-1">Install on iOS (iPhone / iPad):</div>
             <div className="flex items-center gap-3">
               <div className="p-2 bg-cyan-950/60 rounded-xl border border-cyan-500/40 text-cyan-400 shrink-0">
                 <Share className="w-4 h-4" />
               </div>
-              <span>1. Tap the <strong>Share</strong> button in Safari browser bar.</span>
+              <span>1. Tap <strong>Share</strong> in Safari navigation bar.</span>
             </div>
             <div className="flex items-center gap-3">
               <div className="p-2 bg-purple-950/60 rounded-xl border border-purple-500/40 text-purple-400 shrink-0">
                 <PlusSquare className="w-4 h-4" />
               </div>
-              <span>2. Scroll down and select <strong>'Add to Home Screen'</strong>.</span>
+              <span>2. Choose <strong>'Add to Home Screen'</strong>.</span>
             </div>
             <div className="flex items-center gap-3">
               <div className="p-2 bg-emerald-950/60 rounded-xl border border-emerald-500/40 text-emerald-400 shrink-0">
                 <CheckCircle2 className="w-4 h-4" />
               </div>
-              <span>3. Tap <strong>'Add'</strong> to place Kaminari on your home screen.</span>
+              <span>3. Tap <strong>'Add'</strong> to place Kaminari on your screen.</span>
             </div>
           </div>
         ) : (
           <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-2 mb-2">
+            <div className="grid grid-cols-2 gap-2 mb-1">
               <div className="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-white/5 border border-white/10 text-center">
                 <Smartphone className="w-5 h-5 text-cyan-400 mb-1" />
-                <span className="text-xs font-bold text-white font-display">Mobile</span>
+                <span className="text-xs font-bold text-white font-display">Mobile Phone</span>
                 <span className="text-[10px] font-mono text-slate-400">Android & iOS</span>
               </div>
               <div className="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-white/5 border border-white/10 text-center">
                 <Monitor className="w-5 h-5 text-purple-400 mb-1" />
-                <span className="text-xs font-bold text-white font-display">Desktop</span>
-                <span className="text-[10px] font-mono text-slate-400">Windows & Mac</span>
+                <span className="text-xs font-bold text-white font-display">Desktop App</span>
+                <span className="text-[10px] font-mono text-slate-400">Windows & macOS</span>
               </div>
             </div>
 
-            <div className="p-3 bg-black/50 border border-cyan-500/30 rounded-2xl text-xs font-mono space-y-2">
+            <div className="p-3.5 bg-black/60 border border-cyan-500/30 rounded-2xl text-xs font-mono space-y-2">
               <div className="flex items-center gap-2 text-cyan-400 font-bold font-display">
                 <HelpCircle className="w-4 h-4 shrink-0" />
-                <span>Manual Install Instructions:</span>
+                <span>How to Install in 1 Step:</span>
               </div>
-              <div className="text-[11px] text-slate-300 space-y-1.5 pl-1">
-                <p>• <strong>Chrome / Edge (Desktop):</strong> Click the <strong>Install Icon (⊕)</strong> on the right side of your address bar, or click Menu (⋮) → <em>"Install Kaminari Chat"</em>.</p>
-                <p>• <strong>Android Chrome:</strong> Tap Menu (⋮) → <em>"Add to Home Screen"</em> or <em>"Install App"</em>.</p>
-                <p>• <strong>Safari (Mac / iOS):</strong> Click Share (⎋) → <em>"Add to Home Screen"</em> or <em>"Add to Dock"</em>.</p>
+              <div className="text-[11px] text-slate-300 space-y-2 pl-1 leading-relaxed">
+                <p>• <strong>Chrome / Edge (Desktop):</strong> Click the <strong>Install Icon (⊕)</strong> on the right end of your URL bar, or click Menu (⋮) → <em>"Install Kaminari Chat"</em>.</p>
+                <p>• <strong>Android Phone:</strong> Tap Menu (⋮) → select <em>"Install App"</em> or <em>"Add to Home screen"</em>.</p>
+                <p>• <strong>Mac / iPhone:</strong> Click Share (⎋) → select <em>"Add to Dock"</em> or <em>"Add to Home Screen"</em>.</p>
               </div>
             </div>
 
-            {!isInIframe && (
-              <button
-                type="button"
-                onClick={handleOpenNewTab}
-                className="w-full py-2.5 px-3 rounded-xl bg-white/10 hover:bg-white/15 text-white font-mono font-bold text-xs border border-white/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <ExternalLink className="w-4 h-4 text-cyan-400" />
-                RELOAD IN NEW TAB
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={handleOpenNewTab}
+              className="w-full py-3 px-3 rounded-xl bg-cyan-950/60 hover:bg-cyan-900/60 text-cyan-300 font-mono font-bold text-xs border border-cyan-500/40 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_15px_rgba(0,243,255,0.2)]"
+            >
+              <ExternalLink className="w-4 h-4 text-cyan-400" />
+              OPEN DIRECT TAB FOR NATIVE PROMPT
+            </button>
           </div>
         )}
 

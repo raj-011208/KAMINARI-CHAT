@@ -1,9 +1,11 @@
-const CACHE_NAME = 'kaminari-v1';
+const CACHE_NAME = 'kaminari-v2';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/kaminari-logo.jpg'
+  '/kaminari-logo.jpg',
+  '/pwa-icon-192.png',
+  '/pwa-icon-512.png'
 ];
 
 self.addEventListener('install', (event) => {
