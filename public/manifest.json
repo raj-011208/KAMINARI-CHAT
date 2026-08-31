@@ -1,0 +1,24 @@
+{
+  "name": "Kaminari Chat",
+  "short_name": "Kaminari",
+  "description": "Electric cyberpunk real-time chat with 3D lightning visualizers, stories, and WebRTC calling.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0d0d12",
+  "theme_color": "#00f3ff",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/kaminari-logo.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/kaminari-logo.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ]
+}

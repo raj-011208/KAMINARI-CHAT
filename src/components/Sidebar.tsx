@@ -15,6 +15,7 @@ import {
   Globe,
   ArrowLeft,
   Shield,
+  Download,
 } from 'lucide-react';
 import { Chat, User, Story } from '../types';
 import { StoriesTray } from './StoriesTray';
@@ -31,6 +32,7 @@ interface SidebarProps {
   onOpenCreateStory: () => void;
   onOpenProfile: () => void;
   onOpenAdmin: () => void;
+  onOpenInstallApp?: () => void;
   onLogout: () => void;
   onLockGate: () => void;
 }
@@ -47,6 +49,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onOpenCreateStory,
   onOpenProfile,
   onOpenAdmin,
+  onOpenInstallApp,
   onLogout,
   onLockGate,
 }) => {
@@ -120,9 +123,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </span>
           </div>
         </div>
-        <span className="text-[10px] font-mono text-cyan-400/80 px-2 py-0.5 rounded-full bg-cyan-950/60 border border-cyan-500/30">
-          GRID v2.4
-        </span>
+        <div className="flex items-center gap-2">
+          {onOpenInstallApp && (
+            <button
+              type="button"
+              onClick={onOpenInstallApp}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gradient-to-r from-cyan-500/20 to-purple-500/20 hover:from-cyan-500/30 hover:to-purple-500/30 border border-cyan-400/40 text-[10px] font-mono font-bold text-cyan-300 transition-all hover:scale-105 cursor-pointer shadow-[0_0_10px_rgba(0,243,255,0.2)]"
+              title="Download & Install Kaminari App"
+            >
+              <Download className="w-3 h-3 text-cyan-400 animate-bounce" />
+              <span>INSTALL</span>
+            </button>
+          )}
+          <span className="text-[10px] font-mono text-cyan-400/80 px-2 py-0.5 rounded-full bg-cyan-950/60 border border-cyan-500/30">
+            GRID v2.4
+          </span>
+        </div>
       </div>
 
       {/* Current User Profile Bar */}

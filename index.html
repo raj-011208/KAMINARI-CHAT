@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Kaminari Chat</title>
     <link rel="icon" type="image/jpeg" href="/kaminari-logo.jpg" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#00f3ff" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Kaminari Chat" />
+    <link rel="apple-touch-icon" href="/kaminari-logo.jpg" />
     <meta name="description" content="Electric cyberpunk real-time chat with 3D lightning visualizers, stories, and WebRTC calling." />
     <meta property="og:title" content="Kaminari Chat" />
     <meta property="og:description" content="Electric cyberpunk real-time chat with 3D lightning visualizers, stories, and WebRTC calling." />
@@ -17,6 +23,17 @@
   <body class="bg-[#0d0d12] text-slate-100 antialiased selection:bg-cyan-500 selection:text-black overflow-x-hidden">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').then((reg) => {
+            console.log('Kaminari PWA Service Worker registered:', reg.scope);
+          }).catch((err) => {
+            console.log('Service Worker registration failed:', err);
+          });
+        });
+      }
+    </script>
   </body>
 </html>
 

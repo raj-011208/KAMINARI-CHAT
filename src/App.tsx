@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
-import { Zap, Shield, Sparkles, MessageSquare, Radio, Phone, Video } from 'lucide-react';
+import { Zap, Shield, Sparkles, MessageSquare, Radio, Phone, Video, Download } from 'lucide-react';
 import { LightningCanvas3D } from './components/LightningCanvas3D';
 import { AccessGate } from './components/AccessGate';
 import { AuthPortal } from './components/AuthPortal';
@@ -14,6 +14,7 @@ import { NewChatModal } from './components/NewChatModal';
 import { ClearChatConfirmModal } from './components/ClearChatConfirmModal';
 import { UserProfileModal } from './components/UserProfileModal';
 import { AdminPanelModal } from './components/AdminPanelModal';
+import { InstallPwaModal } from './components/InstallPwaModal';
 import { kaminariBackend } from './services/kaminariBackend';
 import { User, Chat, Story, CallSession } from './types';
 
@@ -31,6 +32,7 @@ export default function App() {
   const [activeStoryIndex, setActiveStoryIndex] = useState<number | null>(null);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showAdminModal, setShowAdminModal] = useState(false);
+  const [showInstallModal, setShowInstallModal] = useState(false);
   const [clearChatTargetId, setClearChatTargetId] = useState<string | null>(null);
   const [activeCallSession, setActiveCallSession] = useState<CallSession | null>(null);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -228,6 +230,7 @@ export default function App() {
                     onOpenCreateStory={() => setShowCreateStoryModal(true)}
                     onOpenProfile={() => setShowProfileModal(true)}
                     onOpenAdmin={() => setShowAdminModal(true)}
+                    onOpenInstallApp={() => setShowInstallModal(true)}
                     onLogout={handleLogout}
                     onLockGate={handleLockGate}
                   />
@@ -273,13 +276,23 @@ export default function App() {
                       <p className="text-xs font-mono text-slate-400 max-w-sm">
                         Select a transmission channel from the sidebar or initialize a new high-voltage direct link.
                       </p>
-                      <button
-                        type="button"
-                        onClick={() => setShowNewChatModal(true)}
-                        className="mt-5 px-6 py-3 rounded-2xl bg-gradient-to-tr from-[#00f3ff] to-[#9d00ff] text-black font-bold font-mono text-xs hover:brightness-110 hover:scale-105 transition-transform cursor-pointer shadow-[0_0_20px_rgba(0,243,255,0.3)]"
-                      >
-                        + INITIALIZE TRANSMISSION
-                      </button>
+                      <div className="flex items-center gap-3 mt-5">
+                        <button
+                          type="button"
+                          onClick={() => setShowNewChatModal(true)}
+                          className="px-6 py-3 rounded-2xl bg-gradient-to-tr from-[#00f3ff] to-[#9d00ff] text-black font-bold font-mono text-xs hover:brightness-110 hover:scale-105 transition-transform cursor-pointer shadow-[0_0_20px_rgba(0,243,255,0.3)]"
+                        >
+                          + INITIALIZE TRANSMISSION
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setShowInstallModal(true)}
+                          className="px-5 py-3 rounded-2xl bg-cyan-950/60 border border-cyan-500/40 text-cyan-300 font-bold font-mono text-xs hover:bg-cyan-900/60 hover:scale-105 transition-all cursor-pointer shadow-[0_0_15px_rgba(0,243,255,0.2)] flex items-center gap-2"
+                        >
+                          <Download className="w-4 h-4 text-cyan-400 animate-bounce" />
+                          <span>INSTALL APP</span>
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -287,12 +300,22 @@ export default function App() {
             )}
           </div>
 
-          {/* Footer with Creator Name */}
-          <footer className="w-full shrink-0 py-1.5 px-4 bg-[#0d0d12]/90 border-t border-white/5 backdrop-blur-md flex items-center justify-center gap-1.5 text-[11px] font-mono text-slate-400 z-30">
-            <span>Created by</span>
-            <span className="text-cyan-400 font-bold tracking-wider uppercase">
-              RAJ
-            </span>
+          {/* Footer with Creator Name & App Download button */}
+          <footer className="w-full shrink-0 py-1.5 px-4 bg-[#0d0d12]/90 border-t border-white/5 backdrop-blur-md flex items-center justify-between text-[11px] font-mono text-slate-400 z-30">
+            <div className="flex items-center gap-1.5">
+              <span>Created by</span>
+              <span className="text-cyan-400 font-bold tracking-wider uppercase">
+                RAJ
+              </span>
+            </div>
+
+            <button
+              onClick={() => setShowInstallModal(true)}
+              className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-white/5 hover:bg-cyan-950/50 text-slate-300 hover:text-cyan-300 border border-white/10 hover:border-cyan-400/40 transition-all cursor-pointer"
+            >
+              <Download className="w-3 h-3 text-cyan-400" />
+              <span>Install App</span>
+            </button>
           </footer>
         </div>
 
@@ -384,6 +407,11 @@ export default function App() {
             />
           )}
         </AnimatePresence>
+        {/* MODAL: Install PWA App */}
+        <InstallPwaModal
+          isOpen={showInstallModal}
+          onClose={() => setShowInstallModal(false)}
+        />
       </div>
     </BrowserRouter>
   );
