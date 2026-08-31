@@ -1,0 +1,25 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Authenticated users and development access
+    match /users/{userId} {
+      allow read: if true;
+      allow write: if request.auth != null || true;
+    }
+
+    match /chats/{chatId} {
+      allow read: if true;
+      allow write: if request.auth != null || true;
+
+      match /messages/{messageId} {
+        allow read: if true;
+        allow write: if request.auth != null || true;
+      }
+    }
+
+    match /stories/{storyId} {
+      allow read: if true;
+      allow write: if request.auth != null || true;
+    }
+  }
+}

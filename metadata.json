@@ -1,0 +1,11 @@
+{
+  "name": "Kaminari Chat",
+  "description": "Electric cyberpunk real-time chat with 3D lightning visualizers, stories, and WebRTC calling.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

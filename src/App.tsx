@@ -1,0 +1,390 @@
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AnimatePresence, motion } from 'motion/react';
+import { Zap, Shield, Sparkles, MessageSquare, Radio, Phone, Video } from 'lucide-react';
+import { LightningCanvas3D } from './components/LightningCanvas3D';
+import { AccessGate } from './components/AccessGate';
+import { AuthPortal } from './components/AuthPortal';
+import { Sidebar } from './components/Sidebar';
+import { ChatArea } from './components/ChatArea';
+import { StoriesModal } from './components/StoriesModal';
+import { CreateStoryModal } from './components/CreateStoryModal';
+import { CallScreen } from './components/CallScreen';
+import { NewChatModal } from './components/NewChatModal';
+import { ClearChatConfirmModal } from './components/ClearChatConfirmModal';
+import { UserProfileModal } from './components/UserProfileModal';
+import { AdminPanelModal } from './components/AdminPanelModal';
+import { kaminariBackend } from './services/kaminariBackend';
+import { User, Chat, Story, CallSession } from './types';
+
+export default function App() {
+  const [accessGranted, setAccessGranted] = useState<boolean>(false);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [chats, setChats] = useState<Chat[]>([]);
+  const [allUsers, setAllUsers] = useState<User[]>([]);
+  const [stories, setStories] = useState<Story[]>([]);
+  const [activeChatId, setActiveChatId] = useState<string | null>(null);
+
+  // Modal states
+  const [showNewChatModal, setShowNewChatModal] = useState(false);
+  const [showCreateStoryModal, setShowCreateStoryModal] = useState(false);
+  const [activeStoryIndex, setActiveStoryIndex] = useState<number | null>(null);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showAdminModal, setShowAdminModal] = useState(false);
+  const [clearChatTargetId, setClearChatTargetId] = useState<string | null>(null);
+  const [activeCallSession, setActiveCallSession] = useState<CallSession | null>(null);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
+  // Initialize Access Gate & Auth
+  useEffect(() => {
+    const isPassed = kaminariBackend.isAccessGatePassed();
+    setAccessGranted(isPassed);
+
+    const user = kaminariBackend.getCurrentUser();
+    setCurrentUser(user);
+
+    // Subscribe to reactive backend updates
+    const unsubAuth = kaminariBackend.subscribe('auth', (u: User | null) => {
+      setCurrentUser(u);
+    });
+
+    const unsubAccess = kaminariBackend.subscribe('access', (granted: boolean) => {
+      setAccessGranted(granted);
+    });
+
+    const unsubUsers = kaminariBackend.subscribe('users', (usersList: User[]) => {
+      setAllUsers(usersList || []);
+    });
+
+    const unsubChats = kaminariBackend.subscribe('chats', (chatsList: Chat[]) => {
+      setChats(chatsList || []);
+      // Auto-select first chat if none selected and on desktop
+      if (chatsList?.length > 0 && !activeChatId) {
+        setActiveChatId((prev) => prev || chatsList[0].id);
+      }
+    });
+
+    const unsubStories = kaminariBackend.subscribe('stories', (storiesList: Story[]) => {
+      setStories(storiesList || []);
+    });
+
+    return () => {
+      unsubAuth();
+      unsubAccess();
+      unsubUsers();
+      unsubChats();
+      unsubStories();
+    };
+  }, []);
+
+  // Update active chat when chat list changes
+  useEffect(() => {
+    if (chats.length > 0 && !activeChatId) {
+      setActiveChatId(chats[0].id);
+    }
+  }, [chats, activeChatId]);
+
+  // Handlers
+  const handleAccessGranted = () => {
+    kaminariBackend.verifyAccessCode('kaminari69');
+    setAccessGranted(true);
+  };
+
+  const handleLockGate = () => {
+    kaminariBackend.revokeAccessGate();
+    setAccessGranted(false);
+  };
+
+  const handleLogout = async () => {
+    await kaminariBackend.logout();
+    setCurrentUser(null);
+  };
+
+  const handleStartCall = async (isVideo: boolean) => {
+    if (!currentUser || !activeChat) return;
+    const otherId = activeChat.participants.find((p) => p !== currentUser.id);
+    if (!otherId) return;
+
+    const otherDetail = activeChat.participantDetails[otherId];
+    const otherUser = allUsers.find((u) => u.id === otherId);
+
+    // Send calling notification message in chatbox
+    const callType = isVideo ? 'Video Call' : 'Voice Call';
+    const icon = isVideo ? '📹' : '📞';
+
+    await kaminariBackend.sendMessage({
+      chatId: activeChat.id,
+      text: `${icon} ${callType} Started`,
+      mediaType: 'call',
+    });
+
+    const session: CallSession = {
+      id: `call_${Date.now()}`,
+      chatId: activeChat.id,
+      callerId: currentUser.id,
+      callerName: currentUser.fullName,
+      callerAvatar: currentUser.avatar,
+      receiverId: otherId,
+      receiverName: otherDetail?.fullName || otherUser?.fullName || 'Operative',
+      receiverAvatar: otherDetail?.avatar || otherUser?.avatar || '',
+      isVideo,
+      status: 'calling',
+      startTime: Date.now(),
+    };
+
+    setActiveCallSession(session);
+  };
+
+  const handleEndCall = async (durationSec?: number) => {
+    if (activeCallSession && currentUser) {
+      const isVideo = activeCallSession.isVideo;
+      const callType = isVideo ? 'Video Call' : 'Voice Call';
+      const icon = isVideo ? '📹' : '📞';
+
+      const formatDuration = (sec: number) => {
+        const mins = Math.floor(sec / 60);
+        const remaining = sec % 60;
+        return `${mins.toString().padStart(2, '0')}:${remaining.toString().padStart(2, '0')}`;
+      };
+
+      const durationText = durationSec && durationSec > 0 ? ` (${formatDuration(durationSec)})` : '';
+
+      await kaminariBackend.sendMessage({
+        chatId: activeCallSession.chatId,
+        text: `${icon} ${callType} Ended${durationText}`,
+        mediaType: 'call',
+        callDuration: durationSec,
+      });
+    }
+
+    setActiveCallSession(null);
+  };
+
+  const handleClearHistory = async (chatId: string) => {
+    await kaminariBackend.clearAllChatHistory(chatId);
+    setClearChatTargetId(null);
+  };
+
+  const handleStoryReply = async (recipientId: string, replyText: string) => {
+    if (!currentUser) return;
+    const directChat = await kaminariBackend.createDirectChat(recipientId);
+    setActiveChatId(directChat.id);
+    await kaminariBackend.sendMessage({
+      chatId: directChat.id,
+      text: replyText,
+    });
+  };
+
+  const activeChat = chats.find((c) => c.id === activeChatId);
+
+  return (
+    <BrowserRouter>
+      <div className="relative w-screen h-screen overflow-hidden bg-[#0d0d12] text-slate-100 flex flex-col font-sans">
+        {/* Background 3D Lightning Canvas with interactive particle cloud */}
+        <LightningCanvas3D intensity={1.0} interactive={true} />
+
+        {/* Global Grid scanline & radial overlay for cyberpunk atmosphere */}
+        <div className="absolute inset-0 bg-radial-gradient from-transparent via-[#0d0d12]/60 to-[#0d0d12]/95 pointer-events-none z-1" />
+
+        {/* Main Content Router / State Machine */}
+        <div className="relative z-10 w-full h-full flex flex-col">
+          <div className="flex-1 min-h-0 w-full flex flex-col">
+            {!accessGranted ? (
+              /* STATE 1: ACCESS PASSCODE GATE */
+              <div className="w-full h-full flex items-center justify-center p-4">
+                <AccessGate onAccessGranted={handleAccessGranted} />
+              </div>
+            ) : !currentUser ? (
+              /* STATE 2: USER REGISTRATION / LOGIN PORTAL */
+              <div className="w-full h-full flex items-center justify-center p-4 overflow-y-auto">
+                <AuthPortal
+                  onSuccess={(u) => setCurrentUser(u)}
+                  onLockGate={handleLockGate}
+                />
+              </div>
+            ) : (
+              /* STATE 3: MAIN CHAT & STORIES APPLICATION WORKSPACE */
+              <div className="w-full h-full flex overflow-hidden">
+                {/* Left Sidebar */}
+                <div
+                  className={`fixed lg:static inset-y-0 left-0 z-40 w-80 sm:w-96 h-full transition-transform duration-300 ${
+                    mobileSidebarOpen
+                      ? 'translate-x-0'
+                      : '-translate-x-full lg:translate-x-0'
+                  }`}
+                >
+                  <Sidebar
+                    currentUser={currentUser}
+                    chats={chats}
+                    allUsers={allUsers}
+                    stories={stories}
+                    activeChatId={activeChatId}
+                    onSelectChat={(id) => {
+                      setActiveChatId(id);
+                      setMobileSidebarOpen(false);
+                    }}
+                    onOpenNewChat={() => setShowNewChatModal(true)}
+                    onOpenStory={(idx) => setActiveStoryIndex(idx)}
+                    onOpenCreateStory={() => setShowCreateStoryModal(true)}
+                    onOpenProfile={() => setShowProfileModal(true)}
+                    onOpenAdmin={() => setShowAdminModal(true)}
+                    onLogout={handleLogout}
+                    onLockGate={handleLockGate}
+                  />
+                </div>
+
+                {/* Mobile Sidebar Backdrop */}
+                {mobileSidebarOpen && (
+                  <div
+                    onClick={() => setMobileSidebarOpen(false)}
+                    className="fixed inset-0 bg-black/70 backdrop-blur-xs z-30 lg:hidden"
+                  />
+                )}
+
+                {/* Right Chat Main Area */}
+                <div className="flex-1 h-full flex flex-col min-w-0">
+                  {activeChat ? (
+                    <ChatArea
+                      key={activeChat.id}
+                      chat={activeChat}
+                      currentUser={currentUser}
+                      allUsers={allUsers}
+                      onStartCall={handleStartCall}
+                      onClearChatHistory={(cid) => setClearChatTargetId(cid)}
+                      onOpenSidebar={() => setMobileSidebarOpen(true)}
+                      onBack={() => {
+                        setActiveChatId(null);
+                        setMobileSidebarOpen(true);
+                      }}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center text-slate-500">
+                      <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl overflow-hidden border-2 border-cyan-400/50 shadow-[0_0_35px_rgba(0,243,255,0.4)] bg-[#0d0d12] mb-4">
+                        <img
+                          src="/kaminari-logo.jpg"
+                          alt="Kaminari Logo"
+                          className="w-full h-full object-cover"
+                          referrerPolicy="no-referrer"
+                        />
+                      </div>
+                      <h3 className="text-xl font-bold font-display text-white mb-1">
+                        KAMINARI SECURE MESH
+                      </h3>
+                      <p className="text-xs font-mono text-slate-400 max-w-sm">
+                        Select a transmission channel from the sidebar or initialize a new high-voltage direct link.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setShowNewChatModal(true)}
+                        className="mt-5 px-6 py-3 rounded-2xl bg-gradient-to-tr from-[#00f3ff] to-[#9d00ff] text-black font-bold font-mono text-xs hover:brightness-110 hover:scale-105 transition-transform cursor-pointer shadow-[0_0_20px_rgba(0,243,255,0.3)]"
+                      >
+                        + INITIALIZE TRANSMISSION
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Footer with Creator Name */}
+          <footer className="w-full shrink-0 py-1.5 px-4 bg-[#0d0d12]/90 border-t border-white/5 backdrop-blur-md flex items-center justify-center gap-1.5 text-[11px] font-mono text-slate-400 z-30">
+            <span>Created by</span>
+            <span className="text-cyan-400 font-bold tracking-wider uppercase">
+              RAJ
+            </span>
+          </footer>
+        </div>
+
+        {/* MODAL: Active WebRTC Audio / Video Call */}
+        <AnimatePresence>
+          {activeCallSession && currentUser && (
+            <CallScreen
+              session={activeCallSession}
+              currentUser={currentUser}
+              onEndCall={handleEndCall}
+            />
+          )}
+        </AnimatePresence>
+
+        {/* MODAL: 24h Stories Viewer */}
+        <AnimatePresence>
+          {activeStoryIndex !== null && currentUser && stories.length > 0 && (
+            <StoriesModal
+              stories={stories}
+              initialIndex={activeStoryIndex}
+              currentUser={currentUser}
+              onClose={() => setActiveStoryIndex(null)}
+              onReplyToStory={handleStoryReply}
+            />
+          )}
+        </AnimatePresence>
+
+        {/* MODAL: Create 24h Story */}
+        <AnimatePresence>
+          {showCreateStoryModal && (
+            <CreateStoryModal
+              onClose={() => setShowCreateStoryModal(false)}
+              onStoryCreated={() => {
+                setStories(kaminariBackend.getActiveStories());
+              }}
+            />
+          )}
+        </AnimatePresence>
+
+        {/* MODAL: New Chat / Lightning Channel */}
+        <AnimatePresence>
+          {showNewChatModal && currentUser && (
+            <NewChatModal
+              currentUser={currentUser}
+              allUsers={allUsers}
+              onClose={() => setShowNewChatModal(false)}
+              onChatCreated={(newChat) => {
+                setActiveChatId(newChat.id);
+                setMobileSidebarOpen(false);
+              }}
+            />
+          )}
+        </AnimatePresence>
+
+        {/* MODAL: Clear All Chat History Warning */}
+        <AnimatePresence>
+          {clearChatTargetId && (
+            <ClearChatConfirmModal
+              chatName={chats.find((c) => c.id === clearChatTargetId)?.name || 'Direct Chat'}
+              onConfirm={() => handleClearHistory(clearChatTargetId)}
+              onClose={() => setClearChatTargetId(null)}
+            />
+          )}
+        </AnimatePresence>
+
+        {/* MODAL: User Profile Settings */}
+        <AnimatePresence>
+          {showProfileModal && currentUser && (
+            <UserProfileModal
+              currentUser={currentUser}
+              onClose={() => setShowProfileModal(false)}
+              onProfileUpdated={(updated) => setCurrentUser(updated)}
+              onOpenAdmin={() => setShowAdminModal(true)}
+            />
+          )}
+        </AnimatePresence>
+
+        {/* MODAL: Admin Control Panel */}
+        <AnimatePresence>
+          {showAdminModal && currentUser && (
+            <AdminPanelModal
+              currentUser={currentUser}
+              onClose={() => setShowAdminModal(false)}
+              onRefreshData={() => {
+                setAllUsers(kaminariBackend.getAllUsers());
+                setChats(kaminariBackend.getChats());
+                setStories(kaminariBackend.getActiveStories());
+              }}
+            />
+          )}
+        </AnimatePresence>
+      </div>
+    </BrowserRouter>
+  );
+}
