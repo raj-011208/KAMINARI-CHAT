@@ -78,14 +78,14 @@ export const NewChatModal: React.FC<NewChatModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xl flex items-center justify-center p-3 sm:p-4">
+    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xl flex items-center justify-center p-0 sm:p-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="w-full max-w-lg max-h-[90dvh] overflow-y-auto rounded-3xl bg-[#12121e]/95 border border-white/10 p-4 sm:p-6 shadow-[0_8px_40px_rgba(0,243,255,0.15)] backdrop-blur-2xl"
+        className="w-full h-full sm:h-auto sm:max-h-[90dvh] sm:max-w-lg overflow-y-auto sm:rounded-3xl rounded-none bg-[#12121e]/95 border-0 sm:border sm:border-white/10 p-4 sm:p-6 shadow-[0_8px_40px_rgba(0,243,255,0.15)] backdrop-blur-2xl flex flex-col"
       >
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-white/5">
+        <div className="flex items-center justify-between pb-4 border-b border-white/5 shrink-0">
           <div className="flex items-center gap-3">
             <button
               type="button"
@@ -94,26 +94,26 @@ export const NewChatModal: React.FC<NewChatModalProps> = ({
               title="Go Back"
             >
               <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-              <span className="hidden sm:inline">Back</span>
+              <span className="inline">Back</span>
             </button>
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#00f3ff] to-[#9d00ff] p-[2px] shadow-[0_0_20px_rgba(0,243,255,0.4)]">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#00f3ff] to-[#9d00ff] p-[2px] shadow-[0_0_20px_rgba(0,243,255,0.4)] shrink-0">
               <div className="w-full h-full bg-[#0d0d12] rounded-[14px] flex items-center justify-center">
                 <MessageSquare className="w-5 h-5 text-cyan-400" />
               </div>
             </div>
-            <div>
-              <h3 className="text-lg font-bold text-white">
-                New Chat
+            <div className="min-w-0">
+              <h3 className="text-lg font-bold text-white truncate">
+                New Message
               </h3>
-              <p className="text-xs text-slate-400">
-                Start a direct message or create a group
+              <p className="text-xs text-slate-400 truncate">
+                Direct chat or group
               </p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-2.5 rounded-2xl hover:bg-white/5 text-slate-400 hover:text-white transition-colors cursor-pointer border border-transparent hover:border-white/10"
+            className="p-2.5 rounded-2xl hover:bg-white/5 text-slate-400 hover:text-white transition-colors cursor-pointer"
             title="Close"
           >
             <X className="w-5 h-5" />

@@ -314,8 +314,8 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
   // If not authenticated, show high-security Admin Password Gate
   if (!isAuthenticated) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in">
-        <div className="relative w-full max-w-md bg-[#0f0f17] border border-cyan-500/40 rounded-3xl p-6 sm:p-8 shadow-[0_0_50px_rgba(0,243,255,0.25)] flex flex-col text-slate-100 overflow-hidden">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 bg-black/85 backdrop-blur-md animate-fade-in">
+        <div className="relative w-full h-full sm:h-auto sm:max-w-md bg-[#0f0f17] border-0 sm:border sm:border-cyan-500/40 sm:rounded-3xl rounded-none p-6 sm:p-8 shadow-[0_0_50px_rgba(0,243,255,0.25)] flex flex-col justify-center text-slate-100 overflow-hidden">
           {/* Subtle Background Glow Accent */}
           <div className="absolute -top-24 -right-24 w-48 h-48 bg-fuchsia-600/20 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-cyan-500/20 rounded-full blur-3xl pointer-events-none" />
@@ -423,8 +423,8 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md animate-fade-in">
-      <div className="relative w-full max-w-5xl h-[92vh] max-h-[850px] bg-[#0f0f17] border border-cyan-500/30 rounded-3xl shadow-[0_0_50px_rgba(0,243,255,0.2)] flex flex-col overflow-hidden text-slate-100">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+      <div className="relative w-full h-full sm:h-[92vh] sm:max-h-[850px] sm:max-w-5xl bg-[#0f0f17] border-0 sm:border sm:border-cyan-500/30 sm:rounded-3xl rounded-none shadow-[0_0_50px_rgba(0,243,255,0.2)] flex flex-col overflow-hidden text-slate-100">
         {/* Top Header Bar */}
         <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between bg-black/40">
           <div className="flex items-center gap-3">
