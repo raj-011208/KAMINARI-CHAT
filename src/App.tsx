@@ -60,8 +60,8 @@ export default function App() {
 
     const unsubChats = kaminariBackend.subscribe('chats', (chatsList: Chat[]) => {
       setChats(chatsList || []);
-      // Auto-select first chat if none selected and on desktop
-      if (chatsList?.length > 0 && !activeChatId) {
+      // Auto-select first chat if none selected ONLY on desktop screens
+      if (window.innerWidth >= 1024 && chatsList?.length > 0 && !activeChatId) {
         setActiveChatId((prev) => prev || chatsList[0].id);
       }
     });
@@ -78,13 +78,6 @@ export default function App() {
       unsubStories();
     };
   }, []);
-
-  // Update active chat when chat list changes
-  useEffect(() => {
-    if (chats.length > 0 && !activeChatId) {
-      setActiveChatId(chats[0].id);
-    }
-  }, [chats, activeChatId]);
 
   // Handlers
   const handleAccessGranted = () => {
@@ -192,7 +185,7 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <div className="relative w-screen h-screen overflow-hidden bg-[#0d0d12] text-slate-100 flex flex-col font-sans">
+      <div className="relative w-full h-[100dvh] min-h-[100dvh] overflow-hidden bg-[#0d0d12] text-slate-100 flex flex-col font-sans">
         {/* Background 3D Lightning Canvas with interactive particle cloud */}
         <LightningCanvas3D intensity={1.0} interactive={true} />
 
@@ -200,11 +193,11 @@ export default function App() {
         <div className="absolute inset-0 bg-radial-gradient from-transparent via-[#0d0d12]/60 to-[#0d0d12]/95 pointer-events-none z-1" />
 
         {/* Main Content Router / State Machine */}
-        <div className="relative z-10 w-full h-full flex flex-col">
+        <div className="relative z-10 w-full h-full flex flex-col min-h-0">
           <div className="flex-1 min-h-0 w-full flex flex-col">
             {!accessGranted ? (
               /* STATE 1: ACCESS PASSCODE GATE */
-              <div className="w-full h-full flex items-center justify-center p-4">
+              <div className="w-full h-full flex items-center justify-center p-4 overflow-y-auto">
                 <AccessGate onAccessGranted={handleAccessGranted} />
               </div>
             ) : !currentUser ? (
@@ -218,13 +211,11 @@ export default function App() {
             ) : (
               /* STATE 3: MAIN CHAT & STORIES APPLICATION WORKSPACE */
               <div className="w-full h-full flex overflow-hidden">
-                {/* Left Sidebar */}
+                {/* Sidebar: On mobile, visible when no active chat is open; on desktop, always docked on left */}
                 <div
-                  className={`fixed lg:static inset-y-0 left-0 z-40 w-80 sm:w-96 h-full transition-transform duration-300 ${
-                    mobileSidebarOpen
-                      ? 'translate-x-0'
-                      : '-translate-x-full lg:translate-x-0'
-                  }`}
+                  className={`${
+                    activeChatId ? 'hidden lg:flex' : 'flex'
+                  } w-full lg:w-80 xl:w-96 h-full flex-col shrink-0 lg:border-r lg:border-white/5 z-20`}
                 >
                   <Sidebar
                     currentUser={currentUser}
@@ -248,16 +239,12 @@ export default function App() {
                   />
                 </div>
 
-                {/* Mobile Sidebar Backdrop */}
-                {mobileSidebarOpen && (
-                  <div
-                    onClick={() => setMobileSidebarOpen(false)}
-                    className="fixed inset-0 bg-black/70 backdrop-blur-xs z-30 lg:hidden"
-                  />
-                )}
-
-                {/* Right Chat Main Area */}
-                <div className="flex-1 h-full flex flex-col min-w-0">
+                {/* Main Chat View: On mobile, visible when activeChatId is set; on desktop, fills remaining width */}
+                <div
+                  className={`${
+                    activeChatId ? 'flex' : 'hidden lg:flex'
+                  } flex-1 h-full flex flex-col min-w-0`}
+                >
                   {activeChat ? (
                     <ChatArea
                       key={activeChat.id}
@@ -266,14 +253,15 @@ export default function App() {
                       allUsers={allUsers}
                       onStartCall={handleStartCall}
                       onClearChatHistory={(cid) => setClearChatTargetId(cid)}
-                      onOpenSidebar={() => setMobileSidebarOpen(true)}
+                      onOpenSidebar={() => {
+                        setActiveChatId(null);
+                      }}
                       onBack={() => {
                         setActiveChatId(null);
-                        setMobileSidebarOpen(true);
                       }}
                     />
                   ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center text-slate-500">
+                    <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center text-slate-400">
                       <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl overflow-hidden border-2 border-cyan-400/50 shadow-[0_0_35px_rgba(0,243,255,0.4)] bg-[#0d0d12] mb-4">
                         <img
                           src="/kaminari-logo.jpg"
@@ -282,27 +270,27 @@ export default function App() {
                           referrerPolicy="no-referrer"
                         />
                       </div>
-                      <h3 className="text-xl font-bold font-display text-white mb-1">
-                        KAMINARI SECURE MESH
+                      <h3 className="text-xl font-bold text-white mb-1">
+                        Welcome to Kaminari Chat
                       </h3>
-                      <p className="text-xs font-mono text-slate-400 max-w-sm">
-                        Select a transmission channel from the sidebar or initialize a new high-voltage direct link.
+                      <p className="text-xs text-slate-400 max-w-sm">
+                        Select a chat from the sidebar or start a new conversation.
                       </p>
                       <div className="flex items-center gap-3 mt-5">
                         <button
                           type="button"
                           onClick={() => setShowNewChatModal(true)}
-                          className="px-6 py-3 rounded-2xl bg-gradient-to-tr from-[#00f3ff] to-[#9d00ff] text-black font-bold font-mono text-xs hover:brightness-110 hover:scale-105 transition-transform cursor-pointer shadow-[0_0_20px_rgba(0,243,255,0.3)]"
+                          className="px-6 py-3 rounded-2xl bg-gradient-to-tr from-[#00f3ff] to-[#9d00ff] text-black font-bold text-xs hover:brightness-110 hover:scale-105 transition-transform cursor-pointer shadow-[0_0_20px_rgba(0,243,255,0.3)]"
                         >
-                          + INITIALIZE TRANSMISSION
+                          + New Conversation
                         </button>
                         <button
                           type="button"
                           onClick={() => setShowInstallModal(true)}
-                          className="px-5 py-3 rounded-2xl bg-cyan-950/60 border border-cyan-500/40 text-cyan-300 font-bold font-mono text-xs hover:bg-cyan-900/60 hover:scale-105 transition-all cursor-pointer shadow-[0_0_15px_rgba(0,243,255,0.2)] flex items-center gap-2"
+                          className="px-5 py-3 rounded-2xl bg-cyan-950/60 border border-cyan-500/40 text-cyan-300 font-bold text-xs hover:bg-cyan-900/60 hover:scale-105 transition-all cursor-pointer shadow-[0_0_15px_rgba(0,243,255,0.2)] flex items-center gap-2"
                         >
-                          <Download className="w-4 h-4 text-cyan-400 animate-bounce" />
-                          <span>INSTALL APP</span>
+                          <Download className="w-4 h-4 text-cyan-400" />
+                          <span>Install App</span>
                         </button>
                       </div>
                     </div>

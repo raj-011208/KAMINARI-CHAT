@@ -78,11 +78,11 @@ export const NewChatModal: React.FC<NewChatModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xl flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xl flex items-center justify-center p-3 sm:p-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="w-full max-w-lg rounded-3xl bg-[#12121e]/95 border border-white/10 p-6 sm:p-7 shadow-[0_8px_40px_rgba(0,243,255,0.15)] backdrop-blur-2xl"
+        className="w-full max-w-lg max-h-[90dvh] overflow-y-auto rounded-3xl bg-[#12121e]/95 border border-white/10 p-4 sm:p-6 shadow-[0_8px_40px_rgba(0,243,255,0.15)] backdrop-blur-2xl"
       >
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-white/5">
