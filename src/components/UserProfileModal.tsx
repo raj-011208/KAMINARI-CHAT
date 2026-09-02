@@ -72,23 +72,23 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="p-2 rounded-2xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 transition-all cursor-pointer flex items-center gap-1 text-xs font-mono group"
+              className="p-2 rounded-2xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 transition-all cursor-pointer flex items-center gap-1 text-xs font-semibold group"
               title="Go Back"
             >
               <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-              <span className="hidden sm:inline">BACK</span>
+              <span className="hidden sm:inline">Back</span>
             </button>
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-[#00f3ff] to-[#9d00ff] p-[2px] shadow-[0_0_20px_rgba(0,243,255,0.4)]">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#00f3ff] to-[#9d00ff] p-[2px] shadow-[0_0_20px_rgba(0,243,255,0.4)]">
               <div className="w-full h-full bg-[#0d0d12] rounded-[14px] flex items-center justify-center">
-                <Zap className="w-5 h-5 text-cyan-400 animate-pulse" />
+                <UserIcon className="w-5 h-5 text-cyan-400" />
               </div>
             </div>
             <div>
-              <h3 className="text-lg font-display font-bold text-white">
-                OPERATIVE IDENTITY
+              <h3 className="text-lg font-bold text-white">
+                Profile Settings
               </h3>
-              <p className="text-xs text-slate-400 font-mono">
-                ENCRYPTED KAMINARI PROFILE SETTINGS
+              <p className="text-xs text-slate-400">
+                Update your name, bio, and avatar
               </p>
             </div>
           </div>
@@ -106,11 +106,11 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
           {/* Avatar Selector */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-mono text-slate-300 flex items-center gap-1.5">
+              <span className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
                 <Camera className="w-3.5 h-3.5 text-cyan-400" />
-                AVATAR PRESET OR CUSTOM UPLOAD
+                Profile Picture
               </span>
-              <label className="text-xs font-mono text-cyan-400 hover:text-cyan-300 flex items-center gap-1 cursor-pointer hover:underline">
+              <label className="text-xs text-cyan-400 hover:text-cyan-300 flex items-center gap-1 cursor-pointer hover:underline font-medium">
                 <Upload className="w-3.5 h-3.5" />
                 Upload New Image
                 <input
@@ -156,8 +156,8 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
           {/* Full Name & Username */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-mono text-slate-300 mb-1.5">
-                FULL NAME
+              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                Full Name
               </label>
               <input
                 type="text"
@@ -168,51 +168,52 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
               />
             </div>
             <div>
-              <label className="block text-xs font-mono text-slate-300 mb-1.5">
-                USERNAME (IMMUTABLE)
+              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                Username
               </label>
               <input
                 type="text"
                 disabled
                 value={`@${currentUser.username}`}
-                className="w-full px-4 py-2.5 rounded-2xl bg-black/40 text-slate-400 font-mono text-sm border border-white/5 cursor-not-allowed"
+                className="w-full px-4 py-2.5 rounded-2xl bg-black/40 text-slate-400 text-sm border border-white/5 cursor-not-allowed"
               />
             </div>
           </div>
 
           {/* Status Message */}
           <div>
-            <label className="block text-xs font-mono text-slate-300 mb-1.5 flex items-center gap-1.5">
+            <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-              STATUS TRANSMISSION / NEURAL FREQUENCY
+              Status Message
             </label>
             <input
               type="text"
               value={customStatus}
               onChange={(e) => setCustomStatus(e.target.value)}
-              placeholder="⚡ Overclocking neural relays"
+              placeholder="e.g. Available, Busy, In a meeting"
               className="w-full px-4 py-2.5 rounded-2xl bg-white/5 text-white text-sm border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/30 outline-none"
             />
           </div>
 
           {/* Bio */}
           <div>
-            <label className="block text-xs font-mono text-slate-300 mb-1.5">
-              BIO & CLEARANCE DETAILS
+            <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+              About / Bio
             </label>
             <textarea
               rows={2}
               value={bio}
               onChange={(e) => setBio(e.target.value)}
+              placeholder="Tell others a bit about yourself"
               className="w-full px-4 py-2.5 rounded-2xl bg-white/5 text-white text-sm border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/30 outline-none resize-none"
             />
           </div>
 
           {/* Node Security Meta */}
-          <div className="p-3 rounded-2xl bg-white/5 border border-white/10 text-[11px] font-mono text-slate-400 flex items-center justify-between">
+          <div className="p-3 rounded-2xl bg-white/5 border border-white/10 text-xs text-slate-400 flex items-center justify-between">
             <span className="flex items-center gap-1.5 text-slate-300">
               <Shield className="w-3.5 h-3.5 text-emerald-400" />
-              ROLE: <span className="text-fuchsia-400 font-bold">{currentUser.role === 'admin' ? 'ADMINISTRATOR' : 'OPERATIVE'}</span>
+              Account: <span className="text-fuchsia-400 font-bold">{currentUser.role === 'admin' ? 'Administrator' : 'Standard Member'}</span>
             </span>
             {onOpenAdmin && (
               <button
@@ -221,9 +222,9 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                   onClose();
                   onOpenAdmin();
                 }}
-                className="px-2.5 py-1 rounded-lg bg-fuchsia-500/20 hover:bg-fuchsia-500/30 text-fuchsia-300 border border-fuchsia-500/40 text-[10px] font-mono font-bold cursor-pointer transition-colors"
+                className="px-2.5 py-1 rounded-lg bg-fuchsia-500/20 hover:bg-fuchsia-500/30 text-fuchsia-300 border border-fuchsia-500/40 text-xs font-semibold cursor-pointer transition-colors"
               >
-                ADMIN PANEL ⚡
+                Admin Panel
               </button>
             )}
           </div>
@@ -232,17 +233,17 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3.5 px-4 rounded-2xl font-display text-sm font-bold tracking-wider uppercase bg-gradient-to-tr from-[#00f3ff] to-[#9d00ff] text-black font-extrabold shadow-[0_0_20px_rgba(0,243,255,0.3)] transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
+            className="w-full py-3.5 px-4 rounded-2xl text-sm font-bold bg-gradient-to-tr from-[#00f3ff] to-[#9d00ff] text-black shadow-[0_0_20px_rgba(0,243,255,0.3)] transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
           >
             {savedSuccess ? (
               <>
                 <Check className="w-4 h-4" />
-                <span>PROFILE SYNCHRONIZED</span>
+                <span>Profile Saved</span>
               </>
             ) : loading ? (
-              <span>SAVING IDENTITY...</span>
+              <span>Saving...</span>
             ) : (
-              <span>SAVE & BROADCAST CHANGES</span>
+              <span>Save Changes</span>
             )}
           </button>
         </form>

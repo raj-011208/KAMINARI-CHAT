@@ -184,7 +184,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
 
       await kaminariBackend.sendMessage({
         chatId: chat.id,
-        text: inputText.trim() || (isVideo ? '🎥 Transmitted video file' : '📷 Transmitted image'),
+        text: inputText.trim() || (isVideo ? '🎥 Sent a video' : '📷 Sent an image'),
         mediaUrl,
         mediaType,
         mediaName: file.name,
@@ -207,7 +207,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
       const mediaUrl = await kaminariBackend.uploadMedia(audioBlob, 'voice_notes');
       await kaminariBackend.sendMessage({
         chatId: chat.id,
-        text: `⚡ High-Voltage Voice Message (${durationSec}s)`,
+        text: `🎤 Voice Message (${durationSec}s)`,
         mediaUrl,
         mediaType: 'audio',
         audioDuration: durationSec,
@@ -237,7 +237,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
   return (
     <div className="relative w-full h-full flex flex-col bg-[#0d0d12]/95 backdrop-blur-xl">
       {/* Top Chat Header */}
-      <div className="h-20 px-3 sm:px-6 border-b border-white/5 bg-black/20 backdrop-blur-md flex items-center justify-between z-20 shadow-md">
+      <div className="h-16 sm:h-20 px-3 sm:px-6 border-b border-white/5 bg-black/20 backdrop-blur-md flex items-center justify-between z-20 shadow-md">
         <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
           {/* Back Button (Mobile and Desktop) */}
           {(onBack || onOpenSidebar) && (
@@ -247,11 +247,11 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                 if (onBack) onBack();
                 else if (onOpenSidebar) onOpenSidebar();
               }}
-              className="p-2 sm:p-2.5 rounded-2xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 transition-all cursor-pointer flex items-center gap-1 text-xs font-mono group shrink-0"
-              title="Back to User & Chat Transmissions"
+              className="p-2 sm:p-2.5 rounded-2xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 transition-all cursor-pointer flex items-center gap-1.5 text-xs font-semibold group shrink-0"
+              title="Back to all chats"
             >
               <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform text-cyan-400" />
-              <span className="font-bold text-[11px] text-cyan-300">CHATS</span>
+              <span className="font-bold text-xs text-cyan-300">Chats</span>
             </button>
           )}
 
@@ -268,7 +268,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                     fullName: otherDetail.fullName,
                     avatar: otherDetail.avatar,
                     email: `${otherDetail.username}@kaminari.net`,
-                    bio: '⚡ Operative connected on encrypted frequency.',
+                    bio: 'Hey there! I am using Kaminari Chat.',
                     status: isPeerOnline ? 'online' : 'offline',
                     lastSeen: Date.now(),
                     createdAt: Date.now(),
@@ -279,7 +279,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
               }
             }}
             className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 cursor-pointer group/user p-1 rounded-2xl hover:bg-white/5 transition-colors"
-            title="Tap to view full user profile"
+            title="Tap to view user profile"
           >
             <div className="relative shrink-0">
               <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl p-[2px] bg-gradient-to-tr from-[#00f3ff] to-[#9d00ff] shadow-[0_0_15px_rgba(0,243,255,0.4)] group-hover/user:scale-105 transition-transform">
@@ -293,36 +293,35 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
               {!chat.isGroup && (
                 <span
                   className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#0d0d12] ${
-                    isPeerOnline ? 'bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]' : 'bg-slate-600'
+                    isPeerOnline ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]' : 'bg-slate-600'
                   }`}
                 />
               )}
             </div>
 
             <div className="min-w-0 flex-1">
-              <h2 className="text-xs sm:text-base font-bold text-white flex items-center gap-1.5 truncate">
+              <h2 className="text-sm sm:text-base font-bold text-white flex items-center gap-1.5 truncate">
                 <span className="truncate group-hover/user:text-cyan-300 transition-colors">{chatTitle}</span>
                 {!chat.isGroup && chatUsername && (
-                  <span className="text-[11px] font-mono text-cyan-400 font-normal shrink-0">
+                  <span className="text-xs text-cyan-400/80 font-normal shrink-0">
                     @{chatUsername}
                   </span>
                 )}
               </h2>
-              <div className="text-[10px] sm:text-[11px] font-mono text-slate-400 flex items-center gap-1 truncate">
+              <div className="text-xs text-slate-400 flex items-center gap-1 truncate">
                 {typingUsers.length > 0 ? (
-                  <span className="text-cyan-400 flex items-center gap-1 font-bold animate-pulse">
-                    <Zap className="w-3 h-3 text-cyan-400 animate-bounce" />
-                    Transmitting data...
+                  <span className="text-cyan-400 flex items-center gap-1 font-semibold animate-pulse">
+                    typing...
                   </span>
                 ) : chat.isGroup ? (
-                  <span>{chat.participants.length} connected operatives</span>
+                  <span>{chat.participants.length} members</span>
                 ) : isPeerOnline ? (
                   <span className="text-emerald-400 flex items-center gap-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
-                    Signal Active Now
+                    Online
                   </span>
                 ) : (
-                  <span>Offline • Tap profile info</span>
+                  <span>Offline</span>
                 )}
               </div>
             </div>
@@ -330,14 +329,14 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
         </div>
 
         {/* Action Controls: Audio Call, Video Call, Dropdown Menu */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
           {!chat.isGroup && (
             <>
               <button
                 type="button"
                 onClick={() => onStartCall(false)}
-                className="p-2.5 rounded-2xl bg-white/5 hover:bg-white/10 text-cyan-400 border border-white/10 hover:border-cyan-400/50 transition-all cursor-pointer shadow-[0_0_15px_rgba(0,243,255,0.15)]"
-                title="Start Encrypted Audio Call"
+                className="p-2 sm:p-2.5 rounded-2xl bg-white/5 hover:bg-white/10 text-cyan-400 border border-white/10 hover:border-cyan-400/50 transition-all cursor-pointer shadow-[0_0_15px_rgba(0,243,255,0.15)]"
+                title="Voice Call"
               >
                 <Phone className="w-4 h-4" />
               </button>
@@ -345,8 +344,8 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
               <button
                 type="button"
                 onClick={() => onStartCall(true)}
-                className="p-2.5 rounded-2xl bg-white/5 hover:bg-white/10 text-purple-400 border border-white/10 hover:border-purple-400/50 transition-all cursor-pointer shadow-[0_0_15px_rgba(157,0,255,0.15)]"
-                title="Start 4K WebRTC Video Call"
+                className="p-2 sm:p-2.5 rounded-2xl bg-white/5 hover:bg-white/10 text-purple-400 border border-white/10 hover:border-purple-400/50 transition-all cursor-pointer shadow-[0_0_15px_rgba(157,0,255,0.15)]"
+                title="Video Call"
               >
                 <Video className="w-4 h-4" />
               </button>
@@ -358,7 +357,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
             <button
               type="button"
               onClick={() => setShowOptionsDropdown(!showOptionsDropdown)}
-              className="p-2.5 rounded-2xl hover:bg-white/5 text-slate-400 hover:text-white transition-colors cursor-pointer border border-transparent hover:border-white/10"
+              className="p-2 sm:p-2.5 rounded-2xl hover:bg-white/5 text-slate-400 hover:text-white transition-colors cursor-pointer border border-transparent hover:border-white/10"
               title="Chat Options"
             >
               <MoreVertical className="w-4 h-4" />
@@ -378,19 +377,19 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                       setShowOptionsDropdown(false);
                       onClearChatHistory(chat.id);
                     }}
-                    className="w-full px-3 py-2 text-left text-xs font-mono text-rose-400 hover:bg-rose-950/40 rounded-xl flex items-center gap-2 transition-colors cursor-pointer"
+                    className="w-full px-3 py-2 text-left text-xs text-rose-400 hover:bg-rose-950/40 rounded-xl flex items-center gap-2 transition-colors cursor-pointer"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
-                    Clear All Chat History
+                    Clear Chat History
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setShowOptionsDropdown(false)}
-                    className="w-full px-3 py-2 text-left text-xs font-mono text-slate-300 hover:bg-white/5 rounded-xl flex items-center gap-2 transition-colors cursor-pointer"
+                    className="w-full px-3 py-2 text-left text-xs text-slate-300 hover:bg-white/5 rounded-xl flex items-center gap-2 transition-colors cursor-pointer"
                   >
                     <Shield className="w-3.5 h-3.5 text-cyan-400" />
-                    Verify Quantum Encryption
+                    End-to-End Encrypted
                   </button>
                 </motion.div>
               )}
@@ -410,23 +409,23 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
               : 'bg-cyan-950/70 border-cyan-500/40 text-cyan-200'
           }`}
         >
-          <div className="flex items-center gap-2.5 text-xs font-mono">
+          <div className="flex items-center gap-2.5 text-xs">
             <Zap
               className={`w-4 h-4 shrink-0 ${
                 globalBroadcast.priority === 'urgent'
                   ? 'text-rose-400 animate-bounce'
-                  : 'text-cyan-400 animate-pulse'
+                  : 'text-cyan-400'
               }`}
             />
             <div>
-              <span className="font-bold uppercase tracking-wider mr-2">
-                [GRID BROADCAST: {globalBroadcast.title}]
+              <span className="font-bold mr-2">
+                [{globalBroadcast.title}]
               </span>
               <span className="opacity-90">{globalBroadcast.content}</span>
             </div>
           </div>
-          <span className="text-[10px] font-mono opacity-60 ml-2 shrink-0">
-            BY {globalBroadcast.authorName.toUpperCase()}
+          <span className="text-[11px] opacity-70 ml-2 shrink-0">
+            By {globalBroadcast.authorName}
           </span>
         </div>
       )}
@@ -434,15 +433,15 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
       {/* Messages Feed Area */}
       <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 no-scrollbar">
         {messages.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center text-center text-slate-500 p-8">
+          <div className="h-full flex flex-col items-center justify-center text-center text-slate-400 p-8">
             <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-3 shadow-[0_0_20px_rgba(0,243,255,0.2)]">
-              <Zap className="w-8 h-8 text-cyan-400 animate-pulse-lightning" />
+              <Zap className="w-8 h-8 text-cyan-400" />
             </div>
-            <h3 className="text-base font-bold text-white font-display">
-              SIGNAL ESTABLISHED
+            <h3 className="text-base font-bold text-white">
+              No messages yet
             </h3>
-            <p className="text-xs font-mono text-slate-400 max-w-sm mt-1">
-              End-to-end encrypted frequency ready. Transmit text, voice notes, media files, or launch high-voltage WebRTC video.
+            <p className="text-xs text-slate-400 max-w-sm mt-1">
+              Send a text message, photo, video, or voice note to start the conversation.
             </p>
           </div>
         ) : (
@@ -460,13 +459,13 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                 {/* Replying banner if present */}
                 {msg.replyTo && (
                   <div
-                    className={`text-[11px] font-mono mb-1 px-3 py-1 rounded-t-xl max-w-[85%] sm:max-w-md border-l-2 ${
+                    className={`text-xs mb-1 px-3 py-1 rounded-t-xl max-w-[85%] sm:max-w-md border-l-2 ${
                       isSelf
                         ? 'bg-cyan-950/40 border-cyan-400 text-cyan-300 self-end'
                         : 'bg-[#151522] border-purple-400 text-purple-300 self-start'
                     }`}
                   >
-                    <span className="font-bold font-mono">Replying to {msg.replyTo.senderName}:</span>{' '}
+                    <span className="font-semibold">Replying to {msg.replyTo.senderName}:</span>{' '}
                     <span className="truncate inline-block max-w-[200px] align-bottom">
                       {msg.replyTo.text}
                     </span>
@@ -491,7 +490,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                             fullName: msg.senderName,
                             avatar: msg.senderAvatar,
                             email: `${msg.senderName.toLowerCase()}@kaminari.net`,
-                            bio: '⚡ Operative transmitting on grid.',
+                            bio: 'Hey there! I am using Kaminari Chat.',
                             status: 'online',
                             lastSeen: Date.now(),
                             createdAt: Date.now(),
@@ -507,7 +506,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                   )}
 
                   <div
-                    className={`relative p-4 transition-all shadow-md ${
+                    className={`relative p-3.5 transition-all shadow-md ${
                       isSelf
                         ? 'bg-gradient-to-br from-[#00f3ff] to-[#9d00ff] text-white rounded-t-2xl rounded-bl-2xl shadow-[0_4px_20px_rgba(0,243,255,0.25)]'
                         : 'bg-white/5 border border-white/10 text-slate-200 rounded-t-2xl rounded-br-2xl'
@@ -515,7 +514,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                   >
                     {/* Group sender name badge */}
                     {chat.isGroup && !isSelf && (
-                      <div className="text-[11px] font-mono font-bold text-cyan-400 mb-1">
+                      <div className="text-xs font-bold text-cyan-400 mb-1">
                         {msg.senderName}
                       </div>
                     )}
@@ -532,9 +531,9 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                           className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-300"
                           referrerPolicy="no-referrer"
                         />
-                        <div className="absolute inset-0 bg-cyan-500/10 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
-                          <span className="p-2 rounded-full bg-black/60 text-white text-xs font-mono">
-                            🔍 Click to Enlarge
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
+                          <span className="px-3 py-1.5 rounded-full bg-black/70 text-white text-xs font-semibold">
+                            Click to View
                           </span>
                         </div>
                       </div>
@@ -574,16 +573,16 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                           }`}
                         >
                           {msg.text?.includes('Video') ? (
-                            <Video className="w-5 h-5 animate-pulse" />
+                            <Video className="w-5 h-5" />
                           ) : (
-                            <Phone className="w-5 h-5 animate-pulse" />
+                            <Phone className="w-5 h-5" />
                           )}
                         </div>
                         <div className="flex-1 min-w-[130px]">
-                          <div className="text-xs font-bold font-display text-white flex items-center gap-1.5">
-                            <span>{msg.text?.includes('Video') ? 'Encrypted Video Call' : 'Encrypted Audio Call'}</span>
+                          <div className="text-xs font-bold text-white flex items-center gap-1.5">
+                            <span>{msg.text?.includes('Video') ? 'Video Call' : 'Voice Call'}</span>
                           </div>
-                          <div className="text-[11px] font-mono text-cyan-300/90 mt-0.5">
+                          <div className="text-xs text-cyan-300/90 mt-0.5">
                             {msg.text}
                           </div>
                         </div>
@@ -591,9 +590,9 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                           <button
                             type="button"
                             onClick={() => onStartCall(msg.text?.includes('Video') || false)}
-                            className="px-2.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/20 text-[10px] font-mono font-bold tracking-wider transition-all cursor-pointer hover:scale-105 shrink-0"
+                            className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/20 text-xs font-semibold transition-all cursor-pointer hover:scale-105 shrink-0"
                           >
-                            REDIAL
+                            Call Back
                           </button>
                         )}
                       </div>
@@ -607,7 +606,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                     )}
 
                     {/* Footer with Timestamp and Read Receipt */}
-                    <div className="flex items-center justify-end gap-1.5 mt-1 text-[10px] font-mono opacity-80">
+                    <div className="flex items-center justify-end gap-1.5 mt-1 text-[11px] opacity-80">
                       <span>{formatMessageTime(msg.createdAt)}</span>
                       {isSelf && (
                         <span>
@@ -637,11 +636,11 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
 
                       <button
                         type="button"
-                        onClick={() => handleReaction(msg.id, '⚡')}
-                        className="p-1.5 text-slate-400 hover:text-amber-400 hover:bg-white/5 rounded-lg cursor-pointer"
-                        title="Electric Shock React"
+                        onClick={() => handleReaction(msg.id, '❤️')}
+                        className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-white/5 rounded-lg cursor-pointer"
+                        title="Love"
                       >
-                        ⚡
+                        ❤️
                       </button>
 
                       {isSelf && (
@@ -672,14 +671,14 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                           key={emoji}
                           type="button"
                           onClick={() => handleReaction(msg.id, emoji)}
-                          className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border transition-all cursor-pointer ${
+                          className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs border transition-all cursor-pointer ${
                             userIds.includes(currentUser.id)
                               ? 'bg-cyan-500/20 border-cyan-400 text-cyan-300 shadow-[0_0_10px_rgba(0,243,255,0.3)]'
                               : 'bg-white/5 border-white/10 text-slate-300 hover:border-white/20'
                           }`}
                         >
                           <span>{emoji}</span>
-                          <span className="text-[10px] font-mono">{userIds.length}</span>
+                          <span className="text-xs">{userIds.length}</span>
                         </button>
                       );
                     })}
@@ -701,7 +700,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
             exit={{ opacity: 0, height: 0 }}
             className="px-4 py-2 bg-[#141424] border-t border-cyan-500/30 flex items-center justify-between"
           >
-            <div className="flex items-center gap-2 text-xs font-mono text-cyan-300 truncate">
+            <div className="flex items-center gap-2 text-xs text-cyan-300 truncate">
               <Reply className="w-4 h-4 text-cyan-400 shrink-0" />
               <span>Replying to {replyingTo.senderName}: </span>
               <span className="text-slate-300 truncate">"{replyingTo.text}"</span>
@@ -739,7 +738,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
               disabled={uploadingMedia}
               onClick={() => fileInputRef.current?.click()}
               className="p-3 rounded-2xl bg-white/5 text-slate-400 hover:text-cyan-300 hover:bg-white/10 border border-white/10 transition-all cursor-pointer shadow-[0_0_10px_rgba(0,243,255,0.05)]"
-              title="Attach Photo / Video"
+              title="Attach Photo or Video"
             >
               <Paperclip className="w-4 h-4" />
             </button>
@@ -750,7 +749,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
               disabled={uploadingMedia}
               onClick={() => setIsRecordingVoice(true)}
               className="p-3 rounded-2xl bg-white/5 text-slate-400 hover:text-purple-400 hover:bg-white/10 border border-white/10 transition-all cursor-pointer"
-              title="Record Voice Audio Note"
+              title="Record Voice Note"
             >
               <Mic className="w-4 h-4" />
             </button>
@@ -761,16 +760,16 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                 type="text"
                 value={inputText}
                 onChange={handleInputChange}
-                placeholder={uploadingMedia ? 'Uploading media...' : 'Transmit high-voltage message...'}
+                placeholder={uploadingMedia ? 'Uploading media...' : 'Type a message...'}
                 disabled={uploadingMedia}
-                className="w-full px-5 py-3 rounded-3xl bg-white/5 text-white text-sm placeholder-slate-500 border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/30 outline-none transition-all"
+                className="w-full px-4 sm:px-5 py-3 rounded-3xl bg-white/5 text-white text-sm placeholder-slate-400 border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/30 outline-none transition-all"
               />
 
               {/* Emoji Trigger */}
               <button
                 type="button"
                 onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                className="absolute right-4 top-3 text-slate-400 hover:text-amber-400 transition-colors cursor-pointer"
+                className="absolute right-3.5 top-3 text-slate-400 hover:text-amber-400 transition-colors cursor-pointer"
                 title="Reaction Emojis"
               >
                 <Smile className="w-4 h-4" />
@@ -807,7 +806,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
             <button
               type="submit"
               disabled={!inputText.trim() || uploadingMedia}
-              className="p-3.5 rounded-2xl bg-gradient-to-tr from-[#00f3ff] to-[#9d00ff] text-black font-extrabold disabled:opacity-40 disabled:scale-100 hover:scale-105 active:scale-95 transition-all shadow-[0_0_20px_rgba(0,243,255,0.4)] cursor-pointer"
+              className="p-3.5 rounded-2xl bg-gradient-to-tr from-[#00f3ff] to-[#9d00ff] text-black font-bold disabled:opacity-40 disabled:scale-100 hover:scale-105 active:scale-95 transition-all shadow-[0_0_20px_rgba(0,243,255,0.4)] cursor-pointer shrink-0"
               title="Send Message"
             >
               <Send className="w-4 h-4" />
@@ -856,26 +855,26 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
               <div className="w-12 h-12 rounded-xl bg-red-950/80 border border-red-500/50 flex items-center justify-center mx-auto mb-3 text-red-400">
                 <Trash2 className="w-6 h-6 animate-bounce" />
               </div>
-              <h4 className="text-base font-bold text-white font-display">
-                DELETE FOR EVERYONE?
+              <h4 className="text-base font-bold text-white">
+                Delete message?
               </h4>
-              <p className="text-xs font-mono text-slate-400 mt-1 mb-5">
-                This transmission will be permanently purged from all Firestore nodes and connected operatives.
+              <p className="text-xs text-slate-400 mt-1 mb-5">
+                This message will be permanently deleted for everyone in this chat.
               </p>
               <div className="flex items-center gap-3">
                 <button
                   type="button"
                   onClick={() => setDeleteConfirmMsgId(null)}
-                  className="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-mono cursor-pointer"
+                  className="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="button"
                   onClick={() => handleDeleteMessage(deleteConfirmMsgId)}
-                  className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-mono font-bold shadow-[0_0_15px_rgba(244,63,94,0.4)] cursor-pointer"
+                  className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-bold shadow-[0_0_15px_rgba(244,63,94,0.4)] cursor-pointer"
                 >
-                  Confirm Delete
+                  Delete
                 </button>
               </div>
             </div>
@@ -883,7 +882,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
         )}
       </AnimatePresence>
 
-      {/* Cyberpunk Operative Profile Modal */}
+      {/* User Profile Modal */}
       <AnimatePresence>
         {showPartnerModal && inspectUser && (
           <motion.div
@@ -930,39 +929,39 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                   />
                 </div>
 
-                <h3 className="text-lg font-bold text-white font-display flex items-center justify-center gap-1.5">
+                <h3 className="text-lg font-bold text-white flex items-center justify-center gap-1.5">
                   <span>{inspectUser.fullName}</span>
                 </h3>
-                <div className="text-xs font-mono text-cyan-400 mt-0.5">
+                <div className="text-xs text-cyan-400 mt-0.5">
                   @{inspectUser.username}
                 </div>
 
-                <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-[11px] font-mono text-cyan-300">
-                  <span className={`w-2 h-2 rounded-full ${inspectUser.status === 'online' ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'}`} />
-                  {inspectUser.status === 'online' ? 'ONLINE ON GRID' : 'OFFLINE TRANSMITTER'}
+                <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-xs text-cyan-300">
+                  <span className={`w-2 h-2 rounded-full ${inspectUser.status === 'online' ? 'bg-emerald-400' : 'bg-slate-500'}`} />
+                  {inspectUser.status === 'online' ? 'Online' : 'Offline'}
                 </div>
               </div>
 
               <div className="space-y-3 pt-3 border-t border-white/10 text-xs">
                 <div>
-                  <div className="text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-1">
-                    Operative Bio & Status
+                  <div className="text-xs text-slate-400 uppercase font-semibold mb-1">
+                    About
                   </div>
-                  <p className="text-slate-200 bg-white/5 p-3 rounded-2xl border border-white/5 font-sans leading-relaxed">
-                    {inspectUser.bio || '⚡ Cyberpunk operative transmitting on secure Kaminari grid frequencies.'}
+                  <p className="text-slate-200 bg-white/5 p-3 rounded-2xl border border-white/5 leading-relaxed">
+                    {inspectUser.bio || 'Hey there! I am using Kaminari Chat.'}
                   </p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
                   <div className="p-2.5 rounded-2xl bg-white/5 border border-white/5">
-                    <div className="text-[10px] font-mono text-slate-400 uppercase">CLEARANCE</div>
-                    <div className="text-xs font-bold text-purple-300 uppercase mt-0.5">
-                      {inspectUser.role === 'admin' ? '🛡️ SYSTEM ADMIN' : '⚡ OPERATIVE'}
+                    <div className="text-[11px] text-slate-400 uppercase font-semibold">Account Type</div>
+                    <div className="text-xs font-bold text-purple-300 mt-0.5">
+                      {inspectUser.role === 'admin' ? '🛡️ Administrator' : 'Member'}
                     </div>
                   </div>
                   <div className="p-2.5 rounded-2xl bg-white/5 border border-white/5">
-                    <div className="text-[10px] font-mono text-slate-400 uppercase">EMAIL ADDRESS</div>
-                    <div className="text-xs font-mono text-cyan-300 truncate mt-0.5">
+                    <div className="text-[11px] text-slate-400 uppercase font-semibold">Email</div>
+                    <div className="text-xs text-cyan-300 truncate mt-0.5">
                       {inspectUser.email}
                     </div>
                   </div>
@@ -976,10 +975,10 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                       setShowPartnerModal(false);
                       onStartCall(false);
                     }}
-                    className="py-2.5 px-3 rounded-2xl bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-500/40 font-mono font-bold flex items-center justify-center gap-2 cursor-pointer transition-all hover:scale-[1.02]"
+                    className="py-2.5 px-3 rounded-2xl bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-500/40 font-semibold flex items-center justify-center gap-2 cursor-pointer transition-all hover:scale-[1.02]"
                   >
                     <Phone className="w-4 h-4" />
-                    Audio Call
+                    Voice Call
                   </button>
                   <button
                     type="button"
@@ -987,7 +986,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                       setShowPartnerModal(false);
                       onStartCall(true);
                     }}
-                    className="py-2.5 px-3 rounded-2xl bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 border border-purple-500/40 font-mono font-bold flex items-center justify-center gap-2 cursor-pointer transition-all hover:scale-[1.02]"
+                    className="py-2.5 px-3 rounded-2xl bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 border border-purple-500/40 font-semibold flex items-center justify-center gap-2 cursor-pointer transition-all hover:scale-[1.02]"
                   >
                     <Video className="w-4 h-4" />
                     Video Call

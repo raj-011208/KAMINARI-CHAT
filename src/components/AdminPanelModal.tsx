@@ -343,20 +343,20 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
               <span>CLEARANCE AUTHENTICATION</span>
             </div>
 
-            <h2 className="text-xl font-bold font-display text-white tracking-wide">
-              ADMIN CONTROL CENTER
+            <h2 className="text-xl font-bold text-white tracking-wide">
+              Admin Login
             </h2>
-            <p className="text-xs font-mono text-slate-400 mt-1 max-w-xs">
-              Root administrative authorization is required to access system settings, moderation matrices, and user controls.
+            <p className="text-xs text-slate-400 mt-1 max-w-xs">
+              Enter the admin password to access system settings, moderation controls, and user management.
             </p>
           </div>
 
           {/* Password Form */}
-          <form onSubmit={handleAuthenticate} className="space-y-4 font-mono">
+          <form onSubmit={handleAuthenticate} className="space-y-4">
             <div>
-              <label className="block text-[11px] font-bold uppercase text-slate-300 mb-1.5 flex items-center justify-between">
-                <span>Admin Master Password</span>
-                <span className="text-[10px] text-cyan-400 font-normal">ROOT ACCESS</span>
+              <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center justify-between">
+                <span>Admin Password</span>
+                <span className="text-xs text-cyan-400 font-medium">Default: admin69</span>
               </label>
 
               <div className="relative">
@@ -373,7 +373,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                     if (authError) setAuthError(null);
                   }}
                   placeholder="Enter admin master password..."
-                  className="w-full pl-10 pr-10 py-3 rounded-xl bg-black/50 border border-white/15 text-cyan-300 text-xs font-mono placeholder:text-slate-600 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/50 shadow-inner"
+                  className="w-full pl-10 pr-10 py-3 rounded-xl bg-black/50 border border-white/15 text-cyan-300 text-xs placeholder:text-slate-600 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/50 shadow-inner"
                 />
                 <button
                   type="button"
@@ -393,7 +393,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                 animate={{ opacity: 1, y: 0 }}
                 className="p-3 rounded-xl bg-red-950/50 border border-red-500/40 text-red-300 text-xs flex items-center gap-2"
               >
-                <AlertTriangle className="w-4 h-4 shrink-0 text-red-400 animate-pulse" />
+                <AlertTriangle className="w-4 h-4 shrink-0 text-red-400" />
                 <span>{authError}</span>
               </motion.div>
             )}
@@ -402,18 +402,18 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
             <div className="pt-2 space-y-2">
               <button
                 type="submit"
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-fuchsia-600 hover:from-cyan-400 hover:to-fuchsia-500 text-black font-bold font-mono text-xs tracking-wider uppercase transition-all transform hover:scale-[1.01] active:scale-[0.99] cursor-pointer shadow-[0_0_20px_rgba(0,243,255,0.35)] flex items-center justify-center gap-2"
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-fuchsia-600 hover:from-cyan-400 hover:to-fuchsia-500 text-black font-bold text-xs uppercase tracking-wider transition-all transform hover:scale-[1.01] active:scale-[0.99] cursor-pointer shadow-[0_0_20px_rgba(0,243,255,0.35)] flex items-center justify-center gap-2"
               >
                 <Unlock className="w-4 h-4" />
-                <span>UNLOCK ADMIN TERMINAL</span>
+                <span>Unlock Admin Panel</span>
               </button>
 
               <button
                 type="button"
                 onClick={onClose}
-                className="w-full py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white font-mono text-xs transition-colors cursor-pointer"
+                className="w-full py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white text-xs transition-colors cursor-pointer"
               >
-                Return to Grid
+                Cancel & Return
               </button>
             </div>
           </form>
@@ -435,15 +435,15 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-lg font-bold font-display text-white tracking-wide">
-                  KAMINARI ADMIN CONTROL CENTER
+                <h2 className="text-lg font-bold text-white tracking-wide">
+                  Admin Panel
                 </h2>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
-                  ROOT ACCESS
+                <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
+                  Administrator
                 </span>
               </div>
-              <p className="text-xs font-mono text-slate-400">
-                Authorized Admin: <span className="text-cyan-400">{currentUser.fullName}</span> (@{currentUser.username})
+              <p className="text-xs text-slate-400">
+                Logged in as: <span className="text-cyan-400 font-semibold">{currentUser.fullName}</span> (@{currentUser.username})
               </p>
             </div>
           </div>
@@ -480,13 +480,13 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
         </div>
 
         {/* Tab Navigation */}
-        <div className="px-6 py-2.5 bg-black/20 border-b border-white/5 flex items-center gap-2 overflow-x-auto scrollbar-none">
+        <div className="px-6 py-2.5 bg-black/20 border-b border-white/5 flex items-center gap-2 overflow-x-auto no-scrollbar">
           {[
-            { id: 'overview', label: '📊 Telemetry & Broadcast', icon: Sliders },
-            { id: 'users', label: `👥 Operatives (${usersList.length})`, icon: Users },
-            { id: 'chats', label: `💬 Channels & Chats (${chatsList.length})`, icon: MessageSquare },
-            { id: 'stories', label: `⚡ Stories Moderation (${storiesList.length})`, icon: Sparkles },
-            { id: 'security', label: '🛡️ Security & Passcodes', icon: Lock },
+            { id: 'overview', label: '📊 Dashboard & Broadcast', icon: Sliders },
+            { id: 'users', label: `👥 Users (${usersList.length})`, icon: Users },
+            { id: 'chats', label: `💬 Chats & Groups (${chatsList.length})`, icon: MessageSquare },
+            { id: 'stories', label: `⚡ Stories (${storiesList.length})`, icon: Sparkles },
+            { id: 'security', label: '🛡️ Passwords & Settings', icon: Lock },
           ].map((tab) => {
             const Icon = tab.icon;
             const active = activeTab === tab.id;
@@ -495,7 +495,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer whitespace-nowrap ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
                   active
                     ? 'bg-gradient-to-r from-cyan-500/20 to-fuchsia-500/20 text-cyan-300 border border-cyan-500/40 shadow-[0_0_15px_rgba(0,243,255,0.15)]'
                     : 'text-slate-400 hover:text-slate-200 hover:bg-white/5 border border-transparent'

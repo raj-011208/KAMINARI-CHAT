@@ -22,7 +22,7 @@ export const AccessGate: React.FC<AccessGateProps> = ({ onAccessGranted }) => {
       setIsSuccess(true);
       setError(false);
       
-      // Trigger electric cyan/purple confetti
+      // Trigger festive celebration confetti
       try {
         confetti({
           particleCount: 80,
@@ -41,9 +41,7 @@ export const AccessGate: React.FC<AccessGateProps> = ({ onAccessGranted }) => {
       setError(true);
       setAttempts((prev) => prev + 1);
       setErrorMessage(
-        `High-Voltage Defense Triggered! Invalid Passcode (${attempts + 1} failed ${
-          attempts === 0 ? 'attempt' : 'attempts'
-        }).`
+        `Incorrect passcode. Please try again (Attempt ${attempts + 1}).`
       );
       
       // Auto-clear shake state after animation
@@ -54,7 +52,7 @@ export const AccessGate: React.FC<AccessGateProps> = ({ onAccessGranted }) => {
   };
 
   return (
-    <div className="relative z-10 w-full max-w-md mx-auto p-6 sm:p-8 flex flex-col items-center justify-center">
+    <div className="relative z-10 w-full max-w-md mx-auto p-4 sm:p-8 flex flex-col items-center justify-center">
       {/* Central Glass Card */}
       <motion.div
         initial={{ opacity: 0, scale: 0.92, y: 20 }}
@@ -65,7 +63,7 @@ export const AccessGate: React.FC<AccessGateProps> = ({ onAccessGranted }) => {
           x: error ? [-12, 12, -10, 10, -6, 6, 0] : 0,
         }}
         transition={{ duration: error ? 0.5 : 0.6 }}
-        className={`w-full rounded-3xl p-7 sm:p-8 backdrop-blur-xl border transition-all duration-300 ${
+        className={`w-full rounded-3xl p-6 sm:p-8 backdrop-blur-xl border transition-all duration-300 ${
           error
             ? 'neon-glow-red bg-red-950/30 border-red-500'
             : isSuccess
@@ -76,7 +74,7 @@ export const AccessGate: React.FC<AccessGateProps> = ({ onAccessGranted }) => {
         {/* Header Icon & Logo */}
         <div className="flex flex-col items-center text-center mb-6">
           <div className="relative mb-3">
-            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border-2 border-cyan-400/50 shadow-[0_0_35px_rgba(0,243,255,0.4)] bg-[#0d0d12]">
+            <div className="w-18 h-18 sm:w-22 sm:h-22 rounded-2xl overflow-hidden border-2 border-cyan-400/50 shadow-[0_0_30px_rgba(0,243,255,0.4)] bg-[#0d0d12]">
               <img
                 src="/kaminari-logo.jpg"
                 alt="Kaminari Logo"
@@ -91,29 +89,30 @@ export const AccessGate: React.FC<AccessGateProps> = ({ onAccessGranted }) => {
           <h1 className="text-2xl sm:text-3xl font-display font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-white to-purple-400">
             KAMINARI CHAT
           </h1>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1 font-mono tracking-wide">
-            RESTRICTED HIGH-VOLTAGE NETWORK
+          <p className="text-xs sm:text-sm text-slate-300 mt-1 font-sans">
+            Fast, Secure & Private Messaging
           </p>
         </div>
 
-        {/* Security Alert Banner */}
+        {/* Security Info Banner */}
         <div className="mb-6 p-3.5 rounded-2xl bg-white/5 border border-white/10 flex items-start gap-3">
           <Lock className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
-          <div className="text-xs text-slate-300 leading-relaxed">
-            Please enter your designated access key to establish an encrypted handshake with the Kaminari grid.
+          <div className="text-xs text-slate-300 leading-relaxed font-sans">
+            Please enter your app passcode to unlock your chats. Default passcode is{' '}
+            <span className="text-cyan-300 font-bold font-mono">kaminari69</span>.
           </div>
         </div>
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-mono font-medium text-slate-300 mb-1.5 flex items-center justify-between">
-              <span className="flex items-center gap-1.5">
+            <label className="block text-xs font-medium text-slate-300 mb-1.5 flex items-center justify-between">
+              <span className="flex items-center gap-1.5 font-semibold">
                 <KeyRound className="w-3.5 h-3.5 text-cyan-400" />
-                ACCESS PASSCODE
+                SECURITY PASSCODE
               </span>
-              <span className="text-[10px] text-cyan-400/70 uppercase tracking-wider">
-                ENCRYPTED GATEWAY
+              <span className="text-[11px] text-cyan-400/80">
+                Default: kaminari69
               </span>
             </label>
 
@@ -125,9 +124,9 @@ export const AccessGate: React.FC<AccessGateProps> = ({ onAccessGranted }) => {
                   setCode(e.target.value);
                   if (error) setError(false);
                 }}
-                placeholder="Enter access code..."
+                placeholder="Enter passcode..."
                 autoFocus
-                className={`w-full px-4 py-3 rounded-2xl bg-white/5 text-white font-mono text-sm tracking-widest outline-none border transition-all duration-200 ${
+                className={`w-full px-4 py-3.5 rounded-2xl bg-white/5 text-white font-mono text-sm tracking-wider outline-none border transition-all duration-200 ${
                   error
                     ? 'border-red-500 ring-2 ring-red-500/40 text-red-200'
                     : isSuccess
@@ -138,70 +137,59 @@ export const AccessGate: React.FC<AccessGateProps> = ({ onAccessGranted }) => {
             </div>
           </div>
 
-          {/* Error Message with Red Glow Animation */}
+          {/* Error Message */}
           <AnimatePresence>
             {error && (
               <motion.div
-                initial={{ opacity: 0, y: -6, height: 0 }}
-                animate={{ opacity: 1, y: 0, height: 'auto' }}
-                exit={{ opacity: 0, y: -6, height: 0 }}
-                className="p-3 rounded-2xl bg-red-950/80 border border-red-500/70 text-xs text-red-200 flex items-center gap-2 shadow-[0_0_15px_rgba(255,0,85,0.4)]"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="text-xs text-rose-400 flex items-center gap-1.5 px-3 py-2 rounded-xl bg-rose-950/40 border border-rose-500/30 font-sans"
               >
-                <ShieldAlert className="w-4 h-4 text-red-400 shrink-0" />
-                <span className="font-mono">{errorMessage}</span>
+                <ShieldAlert className="w-4 h-4 shrink-0" />
+                <span>{errorMessage}</span>
               </motion.div>
             )}
           </AnimatePresence>
 
-          {/* Success Banner */}
-          <AnimatePresence>
-            {isSuccess && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="p-3 rounded-2xl bg-cyan-950/80 border border-cyan-400/70 text-xs text-cyan-200 flex items-center gap-2 shadow-[0_0_15px_rgba(0,243,255,0.4)]"
-              >
-                <Zap className="w-4 h-4 text-cyan-300 shrink-0 animate-bounce" />
-                <span className="font-mono font-semibold">
-                  Access Code Verified! Decrypting Gateway...
-                </span>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {/* Quick autofill button */}
+          <div className="flex items-center justify-between pt-1 text-xs">
+            <button
+              type="button"
+              onClick={() => setCode('kaminari69')}
+              className="text-cyan-400 hover:text-cyan-300 underline cursor-pointer transition-colors"
+            >
+              Use default passcode (kaminari69)
+            </button>
+          </div>
 
           {/* Submit Button */}
           <button
             type="submit"
             disabled={!code.trim() || isSuccess}
-            className={`w-full py-3.5 px-4 rounded-2xl font-display text-sm font-bold tracking-wider uppercase transition-all duration-200 flex items-center justify-center gap-2 shadow-lg cursor-pointer ${
-              isSuccess
-                ? 'bg-cyan-400 text-black shadow-cyan-400/50'
-                : !code.trim()
-                ? 'bg-white/5 text-slate-500 border border-white/10 cursor-not-allowed'
-                : 'bg-gradient-to-tr from-[#00f3ff] to-[#9d00ff] text-black font-extrabold shadow-[0_0_20px_rgba(0,243,255,0.4)] hover:brightness-110 hover:scale-[1.02] active:scale-[0.98]'
-            }`}
+            className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-[#00f3ff] via-cyan-400 to-[#9d00ff] text-black font-bold text-sm hover:brightness-110 active:scale-[0.98] transition-all shadow-[0_0_25px_rgba(0,243,255,0.4)] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2 mt-4"
           >
             {isSuccess ? (
               <>
-                <Zap className="w-4 h-4" />
-                UNLOCKED
+                <CheckCircle2 className="w-5 h-5 text-black animate-bounce" />
+                <span>Passcode Accepted! Opening...</span>
               </>
             ) : (
               <>
-                <span>VERIFY & UNLOCK</span>
-                <ArrowRight className="w-4 h-4" />
+                <span>Unlock & Continue</span>
+                <ArrowRight className="w-4 h-4 text-black" />
               </>
             )}
           </button>
         </form>
 
         {/* Security badge footer */}
-        <div className="mt-6 pt-4 border-t border-white/5 flex items-center justify-between text-[11px] font-mono text-slate-500">
-          <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block" />
-            GRID ACTIVE
+        <div className="mt-6 pt-4 border-t border-white/5 flex items-center justify-between text-xs text-slate-400">
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse inline-block" />
+            Protected & Encrypted
           </span>
-          <span className="text-slate-500 font-mono">ENCRYPTED PROTOCOL</span>
+          <span className="text-slate-400 font-mono text-[11px]">KAMINARI</span>
         </div>
       </motion.div>
     </div>

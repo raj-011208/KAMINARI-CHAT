@@ -218,31 +218,31 @@ export const CallScreen: React.FC<CallScreenProps> = ({
           <button
             type="button"
             onClick={() => setIsMinimized(true)}
-            className="p-2 rounded-2xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 transition-all cursor-pointer flex items-center gap-1.5 text-xs font-mono group"
+            className="p-2 rounded-2xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 transition-all cursor-pointer flex items-center gap-1.5 text-xs font-semibold group"
             title="Return to Chat (Picture-in-Picture)"
           >
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-            <span className="hidden sm:inline">BACK TO CHAT</span>
+            <span className="hidden sm:inline">Back to Chat</span>
           </button>
 
-          <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-[#00f3ff] to-[#9d00ff] p-[2px] shadow-[0_0_20px_rgba(0,243,255,0.4)]">
+          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#00f3ff] to-[#9d00ff] p-[2px] shadow-[0_0_20px_rgba(0,243,255,0.4)]">
             <div className="w-full h-full bg-[#0d0d12] rounded-[14px] flex items-center justify-center">
-              <Zap className="w-5 h-5 text-cyan-400 animate-pulse" />
+              <Zap className="w-5 h-5 text-cyan-400" />
             </div>
           </div>
           <div>
-            <div className="text-sm sm:text-base font-display font-black text-white flex items-center gap-2">
+            <div className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
               <span>{peerName}</span>
-              <span className="text-xs font-mono px-2.5 py-0.5 rounded-full bg-white/5 border border-white/10 text-cyan-300">
-                {session.isVideo ? '4K WEBRTC' : 'ENCRYPTED AUDIO'}
+              <span className="text-xs px-2.5 py-0.5 rounded-full bg-white/5 border border-white/10 text-cyan-300 font-medium">
+                {session.isVideo ? 'Video Call' : 'Voice Call'}
               </span>
             </div>
-            <div className="text-xs font-mono text-slate-400 flex items-center gap-1.5">
+            <div className="text-xs text-slate-400 flex items-center gap-1.5 font-medium">
               <Shield className="w-3.5 h-3.5 text-emerald-400" />
               <span>
                 {connectionStatus === 'connected'
-                  ? `SIGNAL SECURED • ${formatDuration(callDuration)}`
-                  : 'ESTABLISHING WEBRTC HANDSHAKE...'}
+                  ? `Connected • ${formatDuration(callDuration)}`
+                  : 'Connecting...'}
               </span>
             </div>
           </div>
@@ -252,7 +252,7 @@ export const CallScreen: React.FC<CallScreenProps> = ({
           type="button"
           onClick={() => setIsMinimized(true)}
           className="p-2.5 rounded-2xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 transition-all cursor-pointer"
-          title="Minimize to Picture-in-Picture"
+          title="Minimize Call"
         >
           <Minimize2 className="w-5 h-5" />
         </button>
@@ -313,13 +313,13 @@ export const CallScreen: React.FC<CallScreenProps> = ({
               <div className="absolute -inset-10 rounded-full border border-purple-500/20 animate-pulse opacity-20" />
             </div>
 
-            <h3 className="text-2xl font-bold font-display text-white mb-1">
+            <h3 className="text-2xl font-bold text-white mb-1">
               {peerName}
             </h3>
-            <p className="text-sm font-mono text-cyan-400">
+            <p className="text-sm text-cyan-400">
               {connectionStatus === 'connected'
-                ? `⚡ HIGH-VOLTAGE AUDIO ENCRYPTED`
-                : 'SYNCHRONIZING AUDIO NODES...'}
+                ? `Voice Call Connected`
+                : 'Connecting audio...'}
             </p>
 
             {/* Audio Waveform Bar Animation */}

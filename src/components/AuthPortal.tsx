@@ -154,10 +154,10 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({ onSuccess, onLockGate })
             <button
               type="button"
               onClick={onLockGate}
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 text-xs font-mono transition-all cursor-pointer group"
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 text-xs transition-all cursor-pointer group"
             >
-              <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
-              <span>BACK TO PASSCODE GATE</span>
+              <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform text-cyan-400" />
+              <span>Back to Passcode Screen</span>
             </button>
           </div>
         )}
@@ -174,11 +174,11 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({ onSuccess, onLockGate })
               />
             </div>
             <div>
-              <h2 className="text-xl sm:text-2xl font-display font-black text-white tracking-wide flex items-center gap-2">
-                KAMINARI <span className="text-cyan-400">ID</span>
+              <h2 className="text-xl sm:text-2xl font-display font-bold text-white tracking-wide flex items-center gap-2">
+                KAMINARI <span className="text-cyan-400">CHAT</span>
               </h2>
-              <p className="text-xs text-slate-400 font-mono">
-                {mode === 'register' ? 'INITIALIZE USER PROFILE' : 'SIGN IN TO GRID'}
+              <p className="text-xs text-slate-300">
+                {mode === 'register' ? 'Create a free account' : 'Sign in to your account'}
               </p>
             </div>
           </div>
@@ -192,13 +192,13 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({ onSuccess, onLockGate })
                 setErrorMessage('');
                 setJustRegisteredUser(null);
               }}
-              className={`px-4 py-2 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer ${
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 mode === 'register'
                   ? 'bg-gradient-to-tr from-[#00f3ff] to-[#9d00ff] text-black shadow-[0_0_15px_rgba(0,243,255,0.3)]'
                   : 'text-slate-400 hover:text-white'
               }`}
             >
-              REGISTER
+              Create Account
             </button>
             <button
               type="button"
@@ -207,13 +207,13 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({ onSuccess, onLockGate })
                 setErrorMessage('');
                 setJustRegisteredUser(null);
               }}
-              className={`px-4 py-2 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer ${
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 mode === 'login'
                   ? 'bg-gradient-to-tr from-[#9d00ff] to-[#00f3ff] text-black shadow-[0_0_15px_rgba(157,0,255,0.3)]'
                   : 'text-slate-400 hover:text-white'
               }`}
             >
-              LOGIN
+              Sign In
             </button>
           </div>
         </div>
@@ -222,7 +222,7 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({ onSuccess, onLockGate })
         {errorMessage && (
           <div className="mt-4 p-3 rounded-2xl bg-cyan-950/40 border border-cyan-500/40 text-xs text-cyan-200 flex items-center gap-2 shadow-[0_0_15px_rgba(0,243,255,0.15)]">
             <AlertCircle className="w-4 h-4 text-cyan-400 shrink-0" />
-            <span className="font-mono">{errorMessage}</span>
+            <span>{errorMessage}</span>
           </div>
         )}
 
@@ -238,11 +238,11 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({ onSuccess, onLockGate })
               <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-cyan-500/20 border border-cyan-400/50 flex items-center justify-center shadow-[0_0_15px_rgba(0,243,255,0.4)]">
                 <CheckCircle2 className="w-8 h-8 text-cyan-300" />
               </div>
-              <h3 className="text-lg font-display font-black text-white tracking-wide">
-                ACCOUNT CREATED IN FIREBASE!
+              <h3 className="text-lg font-bold text-white tracking-wide">
+                Account Created Successfully!
               </h3>
-              <p className="text-xs text-slate-300 mt-1 font-mono">
-                Welcome to Kaminari, <span className="text-cyan-400 font-bold">{justRegisteredUser.fullName}</span> (@{justRegisteredUser.username})
+              <p className="text-xs text-slate-300 mt-1">
+                Welcome, <span className="text-cyan-400 font-bold">{justRegisteredUser.fullName}</span> (@{justRegisteredUser.username})
               </p>
 
               {/* Action Buttons: Log in vs Direct Enter */}
@@ -250,18 +250,18 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({ onSuccess, onLockGate })
                 <button
                   type="button"
                   onClick={() => handleSwitchToLoginWithUser(justRegisteredUser)}
-                  className="py-3 px-4 rounded-2xl bg-white/10 hover:bg-white/20 border border-cyan-400/40 text-white text-xs font-mono font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md"
+                  className="py-3 px-4 rounded-2xl bg-white/10 hover:bg-white/20 border border-cyan-400/40 text-white text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md"
                 >
                   <LogIn className="w-4 h-4 text-cyan-400" />
-                  <span>LOG IN TO ACCOUNT</span>
+                  <span>Sign In Manually</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => onSuccess(justRegisteredUser)}
-                  className="py-3 px-4 rounded-2xl bg-gradient-to-tr from-[#00f3ff] to-[#9d00ff] text-black text-xs font-mono font-extrabold shadow-[0_0_20px_rgba(0,243,255,0.4)] hover:brightness-110 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  className="py-3 px-4 rounded-2xl bg-gradient-to-tr from-[#00f3ff] to-[#9d00ff] text-black text-xs font-extrabold shadow-[0_0_20px_rgba(0,243,255,0.4)] hover:brightness-110 transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <span>ENTER CHAT DIRECTLY</span>
+                  <span>Start Chatting Directly</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
@@ -276,14 +276,14 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({ onSuccess, onLockGate })
               <form onSubmit={handleRegister} className="mt-6 space-y-4">
                 {/* Avatar Selector */}
                 <div>
-                  <label className="block text-xs font-mono text-slate-300 mb-2 flex items-center justify-between">
-                    <span className="flex items-center gap-1.5">
+                  <label className="block text-xs font-medium text-slate-300 mb-2 flex items-center justify-between">
+                    <span className="flex items-center gap-1.5 font-semibold">
                       <Camera className="w-3.5 h-3.5 text-cyan-400" />
-                      CHOOSE PROFILE AVATAR
+                      Choose Profile Picture
                     </span>
                     <label className="text-[11px] text-cyan-400 hover:text-cyan-300 hover:underline cursor-pointer flex items-center gap-1">
                       <Upload className="w-3 h-3" />
-                      Upload Custom
+                      Upload Photo
                       <input
                         type="file"
                         accept="image/*"
@@ -336,8 +336,8 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({ onSuccess, onLockGate })
                         className="w-10 h-10 rounded-xl object-cover border border-cyan-400"
                         referrerPolicy="no-referrer"
                       />
-                      <span className="text-xs text-cyan-300 font-mono">
-                        Custom image attached successfully
+                      <span className="text-xs text-cyan-300">
+                        Custom photo attached
                       </span>
                     </div>
                   )}
@@ -346,24 +346,24 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({ onSuccess, onLockGate })
                 {/* Name and Username Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-mono text-slate-300 mb-1.5 flex items-center gap-1.5">
+                    <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center gap-1.5">
                       <UserIcon className="w-3.5 h-3.5 text-cyan-400" />
-                      FULL NAME
+                      Full Name
                     </label>
                     <input
                       type="text"
                       required
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      placeholder="e.g. Kenji Tanaka"
-                      className="w-full px-4 py-2.5 rounded-2xl bg-white/5 text-white text-sm border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/30 outline-none transition-all"
+                      placeholder="e.g. John Doe"
+                      className="w-full px-4 py-3 rounded-2xl bg-white/5 text-white text-sm border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/30 outline-none transition-all"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-mono text-slate-300 mb-1.5 flex items-center gap-1.5">
+                    <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center gap-1.5">
                       <AtSign className="w-3.5 h-3.5 text-cyan-400" />
-                      UNIQUE USERNAME
+                      Username
                     </label>
                     <div className="relative">
                       <input
@@ -371,10 +371,10 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({ onSuccess, onLockGate })
                         required
                         value={username}
                         onChange={(e) => setUsername(e.target.value.replace(/\s+/g, '_').toLowerCase())}
-                        placeholder="e.g. kenji_lightning"
-                        className="w-full pl-8 pr-4 py-2.5 rounded-2xl bg-white/5 text-white text-sm font-mono border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/30 outline-none transition-all"
+                        placeholder="e.g. johndoe"
+                        className="w-full pl-8 pr-4 py-3 rounded-2xl bg-white/5 text-white text-sm font-mono border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/30 outline-none transition-all"
                       />
-                      <span className="absolute left-3 top-2.5 text-slate-500 font-mono text-sm">
+                      <span className="absolute left-3 top-3 text-slate-500 font-mono text-sm">
                         @
                       </span>
                     </div>
@@ -384,47 +384,47 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({ onSuccess, onLockGate })
                 {/* Email and Password */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-mono text-slate-300 mb-1.5 flex items-center gap-1.5">
+                    <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center gap-1.5">
                       <Mail className="w-3.5 h-3.5 text-cyan-400" />
-                      EMAIL ADDRESS
+                      Email Address
                     </label>
                     <input
                       type="email"
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="kenji@kaminari.net"
-                      className="w-full px-4 py-2.5 rounded-2xl bg-white/5 text-white text-sm border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/30 outline-none transition-all"
+                      placeholder="john@example.com"
+                      className="w-full px-4 py-3 rounded-2xl bg-white/5 text-white text-sm border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/30 outline-none transition-all"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-mono text-slate-300 mb-1.5 flex items-center gap-1.5">
+                    <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center gap-1.5">
                       <Lock className="w-3.5 h-3.5 text-cyan-400" />
-                      PASSWORD (MIN 6 CHARS)
+                      Password (optional)
                     </label>
                     <input
                       type="password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      placeholder="••••••••••••"
-                      className="w-full px-4 py-2.5 rounded-2xl bg-white/5 text-white text-sm font-mono border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/30 outline-none transition-all"
+                      placeholder="Create a password..."
+                      className="w-full px-4 py-3 rounded-2xl bg-white/5 text-white text-sm font-mono border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/30 outline-none transition-all"
                     />
                   </div>
                 </div>
 
                 {/* Bio */}
                 <div>
-                  <label className="block text-xs font-mono text-slate-300 mb-1.5 flex items-center gap-1.5">
+                  <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center gap-1.5">
                     <FileText className="w-3.5 h-3.5 text-cyan-400" />
-                    BIO / STATUS TRANSMISSION
+                    Status / About You
                   </label>
                   <input
                     type="text"
                     value={bio}
                     onChange={(e) => setBio(e.target.value)}
-                    placeholder="⚡ High-frequency neural network specialist."
-                    className="w-full px-4 py-2.5 rounded-2xl bg-white/5 text-white text-sm border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/30 outline-none transition-all"
+                    placeholder="Available to chat..."
+                    className="w-full px-4 py-3 rounded-2xl bg-white/5 text-white text-sm border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/30 outline-none transition-all"
                   />
                 </div>
 
@@ -432,22 +432,22 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({ onSuccess, onLockGate })
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full mt-2 py-3.5 px-4 rounded-2xl font-display text-sm font-bold tracking-wider uppercase bg-gradient-to-tr from-[#00f3ff] to-[#9d00ff] hover:brightness-110 text-black font-extrabold shadow-[0_0_20px_rgba(0,243,255,0.35)] transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
+                  className="w-full mt-2 py-3.5 px-4 rounded-2xl text-sm font-bold bg-gradient-to-tr from-[#00f3ff] to-[#9d00ff] hover:brightness-110 text-black font-extrabold shadow-[0_0_20px_rgba(0,243,255,0.35)] transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
                 >
                   {loading ? (
-                    <div className="flex items-center gap-2 font-mono">
+                    <div className="flex items-center gap-2">
                       <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
-                      SAVING TO FIREBASE & FIRESTORE...
+                      Creating Account...
                     </div>
                   ) : (
                     <>
-                      <span>CREATE KAMINARI ACCOUNT</span>
+                      <span>Create Account & Start Chatting</span>
                       <ArrowRight className="w-4 h-4" />
                     </>
                   )}
                 </button>
 
-                {/* Clear Switcher Link to Login */}
+                {/* Switcher Link to Login */}
                 <div className="text-center pt-2">
                   <button
                     type="button"
@@ -455,58 +455,58 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({ onSuccess, onLockGate })
                       setMode('login');
                       setErrorMessage('');
                     }}
-                    className="text-xs font-mono text-slate-400 hover:text-cyan-300 transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+                    className="text-xs text-slate-400 hover:text-cyan-300 transition-colors inline-flex items-center gap-1.5 cursor-pointer"
                   >
                     <span>Already have an account?</span>
-                    <span className="text-cyan-400 font-bold underline">LOG IN HERE →</span>
+                    <span className="text-cyan-400 font-bold underline">Sign In →</span>
                   </button>
                 </div>
               </form>
             ) : (
               <form onSubmit={handleLogin} className="mt-6 space-y-4">
                 <div>
-                  <label className="block text-xs font-mono text-slate-300 mb-1.5 flex items-center gap-1.5">
+                  <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center gap-1.5">
                     <AtSign className="w-3.5 h-3.5 text-purple-400" />
-                    USERNAME OR EMAIL
+                    Username or Email
                   </label>
                   <input
                     type="text"
                     required
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    placeholder="Enter username or email..."
-                    className="w-full px-4 py-2.5 rounded-2xl bg-white/5 text-white text-sm font-mono border border-white/10 focus:border-purple-400 focus:ring-1 focus:ring-purple-400/30 outline-none transition-all"
+                    placeholder="Enter your username or email..."
+                    className="w-full px-4 py-3 rounded-2xl bg-white/5 text-white text-sm border border-white/10 focus:border-purple-400 focus:ring-1 focus:ring-purple-400/30 outline-none transition-all"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-mono text-slate-300 mb-1.5 flex items-center gap-1.5">
+                  <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center gap-1.5">
                     <Lock className="w-3.5 h-3.5 text-purple-400" />
-                    PASSWORD
+                    Password
                   </label>
                   <input
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••••••"
-                    className="w-full px-4 py-2.5 rounded-2xl bg-white/5 text-white text-sm font-mono border border-white/10 focus:border-purple-400 focus:ring-1 focus:ring-purple-400/30 outline-none transition-all"
+                    placeholder="Enter your password..."
+                    className="w-full px-4 py-3 rounded-2xl bg-white/5 text-white text-sm font-mono border border-white/10 focus:border-purple-400 focus:ring-1 focus:ring-purple-400/30 outline-none transition-all"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full mt-2 py-3.5 px-4 rounded-2xl font-display text-sm font-bold tracking-wider uppercase bg-gradient-to-tr from-[#9d00ff] to-[#00f3ff] hover:brightness-110 text-black font-extrabold shadow-[0_0_20px_rgba(157,0,255,0.35)] transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
+                  className="w-full mt-2 py-3.5 px-4 rounded-2xl text-sm font-bold bg-gradient-to-tr from-[#9d00ff] to-[#00f3ff] hover:brightness-110 text-black font-extrabold shadow-[0_0_20px_rgba(157,0,255,0.35)] transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
                 >
                   {loading ? (
-                    <div className="flex items-center gap-2 font-mono">
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      AUTHENTICATING...
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                      Signing In...
                     </div>
                   ) : (
                     <>
                       <LogIn className="w-4 h-4" />
-                      <span>SIGN IN TO KAMINARI</span>
+                      <span>Sign In</span>
                     </>
                   )}
                 </button>
@@ -519,10 +519,10 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({ onSuccess, onLockGate })
                       setMode('register');
                       setErrorMessage('');
                     }}
-                    className="text-xs font-mono text-slate-400 hover:text-purple-300 transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+                    className="text-xs text-slate-400 hover:text-purple-300 transition-colors inline-flex items-center gap-1.5 cursor-pointer"
                   >
-                    <span>Need a new operative account?</span>
-                    <span className="text-purple-400 font-bold underline">REGISTER NEW →</span>
+                    <span>Need an account?</span>
+                    <span className="text-purple-400 font-bold underline">Create One Now →</span>
                   </button>
                 </div>
               </form>
@@ -533,23 +533,23 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({ onSuccess, onLockGate })
         {/* Reset Accounts Confirmation Dialog */}
         {showResetConfirm ? (
           <div className="mt-4 p-3 rounded-2xl bg-rose-950/50 border border-rose-500/40 text-center">
-            <p className="text-xs text-rose-200 font-mono mb-2">
-              Wipe all saved local accounts & reset to clean default state?
+            <p className="text-xs text-rose-200 mb-2">
+              Clear saved accounts and start fresh?
             </p>
             <div className="flex items-center justify-center gap-2">
               <button
                 type="button"
                 onClick={handleResetLocalData}
-                className="px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-mono font-bold cursor-pointer"
+                className="px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold cursor-pointer"
               >
-                YES, RESET ALL
+                Yes, Reset All
               </button>
               <button
                 type="button"
                 onClick={() => setShowResetConfirm(false)}
-                className="px-3 py-1 bg-white/10 hover:bg-white/20 text-slate-300 rounded-xl text-xs font-mono cursor-pointer"
+                className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-slate-300 rounded-xl text-xs cursor-pointer"
               >
-                CANCEL
+                Cancel
               </button>
             </div>
           </div>
@@ -558,27 +558,27 @@ export const AuthPortal: React.FC<AuthPortalProps> = ({ onSuccess, onLockGate })
             <button
               type="button"
               onClick={() => setShowResetConfirm(true)}
-              className="text-[11px] font-mono text-slate-500 hover:text-rose-400 transition-colors inline-flex items-center gap-1 cursor-pointer"
+              className="text-[11px] text-slate-500 hover:text-rose-400 transition-colors inline-flex items-center gap-1 cursor-pointer"
             >
               <Trash2 className="w-3 h-3" />
-              <span>Clear Stored Accounts & Reset Cache</span>
+              <span>Reset Saved Data</span>
             </button>
           </div>
         )}
 
-        {/* Footer info & lock gate option */}
-        <div className="mt-6 flex items-center justify-between text-[11px] font-mono text-slate-500 pt-3 border-t border-white/5">
-          <span className="flex items-center gap-1 text-slate-400">
+        {/* Footer info */}
+        <div className="mt-6 flex items-center justify-between text-xs text-slate-400 pt-3 border-t border-white/5">
+          <span className="flex items-center gap-1">
             <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" />
-            256-BIT QUANTUM CIPHER
+            End-to-End Encrypted
           </span>
           {onLockGate && (
             <button
               type="button"
               onClick={onLockGate}
-              className="text-slate-400 hover:text-rose-400 hover:underline cursor-pointer"
+              className="text-slate-400 hover:text-cyan-300 hover:underline cursor-pointer"
             >
-              🔒 Lock Gateway
+              🔒 Lock Screen
             </button>
           )}
         </div>

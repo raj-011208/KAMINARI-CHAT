@@ -109,7 +109,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
     <div className="w-full h-full flex flex-col bg-[#12121a]/80 border-r border-white/5 backdrop-blur-xl select-none">
       {/* Top App Brand Header */}
-      <div className="px-4 pt-3.5 pb-2.5 border-b border-white/5 flex items-center justify-between bg-black/40">
+      <div className="px-4 py-3 border-b border-white/5 flex items-center justify-between bg-black/40">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-xl overflow-hidden border border-cyan-400/40 shadow-[0_0_12px_rgba(0,243,255,0.3)] bg-[#0d0d12]">
             <img
@@ -120,7 +120,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             />
           </div>
           <div>
-            <span className="text-sm font-display font-black tracking-wider text-white">
+            <span className="text-sm font-display font-bold tracking-wide text-white">
               KAMINARI <span className="text-cyan-400">CHAT</span>
             </span>
           </div>
@@ -130,16 +130,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <button
               type="button"
               onClick={onOpenInstallApp}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gradient-to-r from-cyan-500/20 to-purple-500/20 hover:from-cyan-500/30 hover:to-purple-500/30 border border-cyan-400/40 text-[10px] font-mono font-bold text-cyan-300 transition-all hover:scale-105 cursor-pointer shadow-[0_0_10px_rgba(0,243,255,0.2)]"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-cyan-500/20 to-purple-500/20 hover:from-cyan-500/30 hover:to-purple-500/30 border border-cyan-400/40 text-xs font-semibold text-cyan-300 transition-all hover:scale-105 cursor-pointer shadow-[0_0_10px_rgba(0,243,255,0.2)]"
               title="Download & Install Kaminari App"
             >
-              <Download className="w-3 h-3 text-cyan-400 animate-bounce" />
-              <span>INSTALL</span>
+              <Download className="w-3.5 h-3.5 text-cyan-400 animate-bounce" />
+              <span>Install App</span>
             </button>
           )}
-          <span className="text-[10px] font-mono text-cyan-400/80 px-2 py-0.5 rounded-full bg-cyan-950/60 border border-cyan-500/30">
-            GRID v2.4
-          </span>
         </div>
       </div>
 
@@ -147,10 +144,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className="p-3 border-b border-white/5 flex items-center justify-between bg-black/20 backdrop-blur-md">
         <div
           onClick={onOpenProfile}
-          className="flex items-center gap-3 cursor-pointer group"
+          className="flex items-center gap-3 cursor-pointer group flex-1 min-w-0 pr-2"
           title="View & Edit Profile"
         >
-          <div className="relative">
+          <div className="relative shrink-0">
             <div className="w-10 h-10 rounded-xl p-[2px] bg-gradient-to-tr from-[#00f3ff] to-[#9d00ff] group-hover:shadow-[0_0_20px_rgba(0,243,255,0.5)] transition-all">
               <img
                 src={currentUser.avatar}
@@ -162,42 +159,40 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-400 border-2 border-[#0d0d12] animate-pulse" />
           </div>
 
-          <div className="truncate">
+          <div className="truncate min-w-0">
             <div className="text-sm font-bold text-white group-hover:text-cyan-300 transition-colors flex items-center gap-1.5 truncate">
-              <span>{currentUser.fullName}</span>
+              <span className="truncate">{currentUser.fullName}</span>
               {currentUser.role === 'admin' && (
-                <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded-md bg-fuchsia-500/20 text-fuchsia-300 border border-fuchsia-500/40">
-                  ADMIN
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-fuchsia-500/20 text-fuchsia-300 border border-fuchsia-500/40 shrink-0">
+                  Admin
                 </span>
               )}
             </div>
-            <div className="text-[11px] font-mono text-slate-400 truncate max-w-[140px]">
+            <div className="text-xs text-slate-400 truncate">
               @{currentUser.username}
             </div>
           </div>
         </div>
 
         {/* Quick Actions */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 shrink-0">
           {/* Admin Control Panel Button */}
-          <button
-            type="button"
-            onClick={onOpenAdmin}
-            className={`p-2.5 rounded-xl border transition-all cursor-pointer ${
-              currentUser.role === 'admin'
-                ? 'bg-fuchsia-500/20 text-fuchsia-300 border-fuchsia-500/50 hover:bg-fuchsia-500/30 shadow-[0_0_15px_rgba(217,70,239,0.3)]'
-                : 'bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white border-white/10'
-            }`}
-            title="Admin Control Center"
-          >
-            <Shield className="w-4 h-4" />
-          </button>
+          {currentUser.role === 'admin' && (
+            <button
+              type="button"
+              onClick={onOpenAdmin}
+              className="p-2 rounded-xl border transition-all cursor-pointer bg-fuchsia-500/20 text-fuchsia-300 border-fuchsia-500/50 hover:bg-fuchsia-500/30 shadow-[0_0_15px_rgba(217,70,239,0.3)]"
+              title="Admin Panel"
+            >
+              <Shield className="w-4 h-4" />
+            </button>
+          )}
 
           <button
             type="button"
             onClick={onOpenNewChat}
-            className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-cyan-400 border border-white/10 hover:border-cyan-400/50 transition-all cursor-pointer shadow-[0_0_15px_rgba(0,243,255,0.15)]"
-            title="Start New Chat or Channel"
+            className="p-2 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-400/40 transition-all cursor-pointer shadow-[0_0_15px_rgba(0,243,255,0.2)]"
+            title="Start New Chat"
           >
             <Plus className="w-4 h-4" />
           </button>
@@ -205,8 +200,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <button
             type="button"
             onClick={onOpenProfile}
-            className="p-2.5 rounded-xl hover:bg-white/5 text-slate-400 hover:text-white transition-colors cursor-pointer"
-            title="Profile & Settings"
+            className="p-2 rounded-xl hover:bg-white/5 text-slate-400 hover:text-white transition-colors cursor-pointer"
+            title="Settings & Profile"
           >
             <Settings className="w-4 h-4" />
           </button>
@@ -214,8 +209,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <button
             type="button"
             onClick={onLogout}
-            className="p-2.5 rounded-xl hover:bg-red-950/40 text-slate-400 hover:text-red-400 transition-colors cursor-pointer"
-            title="Disconnect / Logout"
+            className="p-2 rounded-xl hover:bg-red-950/40 text-slate-400 hover:text-red-400 transition-colors cursor-pointer"
+            title="Sign Out"
           >
             <LogOut className="w-4 h-4" />
           </button>
@@ -225,16 +220,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Admin Center Quick Access Banner */}
       {currentUser.role === 'admin' && (
         <div className="px-4 py-2 bg-gradient-to-r from-fuchsia-950/40 to-cyan-950/40 border-b border-fuchsia-500/20 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs font-mono text-fuchsia-300 font-bold">
-            <Shield className="w-3.5 h-3.5 text-fuchsia-400 animate-pulse" />
-            <span>ADMIN CONTROL CENTER</span>
+          <div className="flex items-center gap-2 text-xs text-fuchsia-300 font-semibold">
+            <Shield className="w-3.5 h-3.5 text-fuchsia-400" />
+            <span>Admin Dashboard</span>
           </div>
           <button
             type="button"
             onClick={onOpenAdmin}
-            className="px-2.5 py-1 rounded-lg bg-fuchsia-500/20 hover:bg-fuchsia-500/30 text-fuchsia-300 border border-fuchsia-500/40 text-[10px] font-mono font-bold cursor-pointer transition-all hover:scale-105"
+            className="px-2.5 py-1 rounded-lg bg-fuchsia-500/20 hover:bg-fuchsia-500/30 text-fuchsia-300 border border-fuchsia-500/40 text-xs font-bold cursor-pointer transition-all"
           >
-            MANAGE APP →
+            Open Panel →
           </button>
         </div>
       )}
@@ -248,15 +243,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
       />
 
       {/* Search Input Bar */}
-      <div className="p-3.5 border-b border-white/5 bg-black/10">
+      <div className="p-3 border-b border-white/5 bg-black/10">
         <div className="relative">
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search transmissions, operatives..."
-            className="w-full pl-10 pr-8 py-2.5 rounded-2xl bg-white/5 text-xs font-mono text-white placeholder-slate-500 border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/30 outline-none transition-all"
+            placeholder="Search chats or people..."
+            className="w-full pl-10 pr-8 py-2.5 rounded-2xl bg-white/5 text-xs text-white placeholder-slate-400 border border-white/10 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/30 outline-none transition-all"
           />
           {searchQuery && (
             <button
@@ -270,51 +265,51 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Tab Filter Switcher */}
-      <div className="flex items-center px-3 py-2 border-b border-white/5 gap-1.5 bg-black/20 text-[11px] font-mono">
+      <div className="flex items-center px-3 py-2 border-b border-white/5 gap-1.5 bg-black/20 text-xs">
         <button
           type="button"
           onClick={() => setFilterTab('all')}
-          className={`flex-1 py-1.5 rounded-xl text-center font-bold transition-all cursor-pointer ${
+          className={`flex-1 py-1.5 rounded-xl text-center font-semibold transition-all cursor-pointer ${
             filterTab === 'all'
               ? 'bg-gradient-to-r from-[#00f3ff]/20 to-[#9d00ff]/20 text-cyan-300 border border-cyan-400/40 shadow-[0_0_10px_rgba(0,243,255,0.2)]'
               : 'text-slate-400 hover:text-white hover:bg-white/5'
           }`}
         >
-          ALL ({chats.length})
+          Chats ({chats.length})
         </button>
         <button
           type="button"
           onClick={() => setFilterTab('direct')}
-          className={`flex-1 py-1.5 rounded-xl text-center font-bold transition-all cursor-pointer ${
+          className={`flex-1 py-1.5 rounded-xl text-center font-semibold transition-all cursor-pointer ${
             filterTab === 'direct'
               ? 'bg-[#00f3ff]/20 text-cyan-300 border border-cyan-400/40'
               : 'text-slate-400 hover:text-white hover:bg-white/5'
           }`}
         >
-          DIRECT
+          Direct
         </button>
         <button
           type="button"
           onClick={() => setFilterTab('groups')}
-          className={`flex-1 py-1.5 rounded-xl text-center font-bold transition-all cursor-pointer ${
+          className={`flex-1 py-1.5 rounded-xl text-center font-semibold transition-all cursor-pointer ${
             filterTab === 'groups'
               ? 'bg-[#00f3ff]/20 text-cyan-300 border border-cyan-400/40'
               : 'text-slate-400 hover:text-white hover:bg-white/5'
           }`}
         >
-          CHANNELS
+          Groups
         </button>
         <button
           type="button"
           onClick={() => setFilterTab('network')}
-          className={`flex-1 py-1.5 rounded-xl text-center font-bold transition-all cursor-pointer flex items-center justify-center gap-1 ${
+          className={`flex-1 py-1.5 rounded-xl text-center font-semibold transition-all cursor-pointer flex items-center justify-center gap-1 ${
             filterTab === 'network'
               ? 'bg-[#9d00ff]/20 text-purple-300 border border-purple-400/40'
               : 'text-slate-400 hover:text-white hover:bg-white/5'
           }`}
         >
-          <Globe className="w-3 h-3" />
-          GRID
+          <Users className="w-3.5 h-3.5" />
+          People
         </button>
       </div>
 
@@ -329,13 +324,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 setFilterTab('all');
                 setSearchQuery('');
               }}
-              className="w-full py-1.5 px-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-cyan-300 border border-white/10 text-[11px] font-mono flex items-center justify-between transition-colors cursor-pointer group"
+              className="w-full py-1.5 px-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-cyan-300 border border-white/10 text-xs flex items-center justify-between transition-colors cursor-pointer group"
             >
               <span className="flex items-center gap-1.5">
                 <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform text-cyan-400" />
-                <span>BACK TO ALL TRANSMISSIONS</span>
+                <span>Back to all chats</span>
               </span>
-              <span className="text-[10px] text-slate-400">CLEAR FILTER</span>
+              <span className="text-[11px] text-slate-400">Clear filter</span>
             </button>
           </div>
         )}
@@ -343,9 +338,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {filterTab === 'network' ? (
           /* Network Directory View */
           <div className="space-y-1">
-            <div className="px-2 py-1.5 text-[10px] font-mono text-purple-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
-              <Radio className="w-3 h-3 text-purple-400 animate-pulse" />
-              ONLINE OPERATIVES ON GRID ({filteredUsers.length})
+            <div className="px-2 py-1.5 text-xs text-purple-300 font-bold tracking-wide flex items-center gap-1.5">
+              <Radio className="w-3.5 h-3.5 text-purple-400" />
+              People on Kaminari ({filteredUsers.length})
             </div>
             {filteredUsers.map((user) => (
               <div
@@ -359,8 +354,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 }}
                 className="flex items-center justify-between p-2.5 rounded-2xl hover:bg-white/5 border border-transparent hover:border-white/10 transition-all cursor-pointer group"
               >
-                <div className="flex items-center gap-3 truncate">
-                  <div className="relative">
+                <div className="flex items-center gap-3 truncate min-w-0">
+                  <div className="relative shrink-0">
                     <img
                       src={user.avatar}
                       alt={user.fullName}
@@ -377,19 +372,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       }`}
                     />
                   </div>
-                  <div className="truncate">
-                    <div className="text-xs font-bold text-white group-hover:text-cyan-300 truncate">
+                  <div className="truncate min-w-0">
+                    <div className="text-xs sm:text-sm font-bold text-white group-hover:text-cyan-300 truncate">
                       {user.fullName}
                     </div>
-                    <div className="text-[10px] font-mono text-slate-400 truncate">
-                      @{user.username} • {user.bio}
+                    <div className="text-xs text-slate-400 truncate">
+                      @{user.username} {user.bio ? `• ${user.bio}` : ''}
                     </div>
                   </div>
                 </div>
 
                 <button
                   type="button"
-                  className="px-2.5 py-1 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 text-[11px] font-mono border border-cyan-500/30 shrink-0"
+                  className="px-3 py-1.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 text-xs font-semibold border border-cyan-500/30 shrink-0 ml-2"
                 >
                   Message
                 </button>
@@ -400,15 +395,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
           /* Normal Chat Stream */
           <div className="space-y-1">
             {filteredChats.length === 0 ? (
-              <div className="p-8 text-center text-slate-500 flex flex-col items-center gap-2">
-                <MessageSquare className="w-8 h-8 text-slate-600" />
-                <p className="text-xs font-mono">No active transmissions found</p>
+              <div className="p-8 text-center text-slate-400 flex flex-col items-center gap-2">
+                <MessageSquare className="w-8 h-8 text-slate-500" />
+                <p className="text-xs">No chats found</p>
                 <button
                   type="button"
                   onClick={onOpenNewChat}
-                  className="mt-2 px-3.5 py-2 rounded-2xl bg-gradient-to-r from-[#00f3ff] to-[#9d00ff] text-black text-xs font-mono font-bold hover:brightness-110 cursor-pointer shadow-[0_0_15px_rgba(0,243,255,0.3)]"
+                  className="mt-2 px-4 py-2 rounded-2xl bg-gradient-to-r from-[#00f3ff] to-[#9d00ff] text-black text-xs font-bold hover:brightness-110 cursor-pointer shadow-[0_0_15px_rgba(0,243,255,0.3)]"
                 >
-                  + Start First Transmission
+                  + Start a New Chat
                 </button>
               </div>
             ) : (
@@ -421,11 +416,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
                 const displayName = chat.isGroup
                   ? chat.name
-                  : otherDetail?.fullName || 'Operative';
+                  : otherDetail?.fullName || 'User';
                 const displayAvatar = chat.isGroup
                   ? chat.avatar || 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=400&auto=format&fit=crop&q=80'
                   : otherDetail?.avatar;
-                const displayHandle = !chat.isGroup ? `@${otherDetail?.username}` : 'CHANNEL';
+                const displayHandle = !chat.isGroup ? `@${otherDetail?.username}` : 'Group';
 
                 const isOnline = otherId
                   ? allUsers.find((u) => u.id === otherId)?.status === 'online'
@@ -437,7 +432,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     onClick={() => onSelectChat(chat.id)}
                     className={`flex items-center gap-3 p-3 transition-all cursor-pointer rounded-2xl border ${
                       isActive
-                        ? 'bg-white/5 border-white/10 shadow-[0_4px_20px_rgba(0,243,255,0.06)]'
+                        ? 'bg-white/10 border-cyan-400/40 shadow-[0_4px_20px_rgba(0,243,255,0.1)]'
                         : 'border-transparent hover:bg-white/5 hover:border-white/5'
                     }`}
                   >
@@ -467,8 +462,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         />
                       )}
                       {chat.isGroup && (
-                        <span className="absolute -bottom-1 -right-1 p-0.5 rounded-lg bg-cyan-950 border border-cyan-500/50 text-[9px] font-mono text-cyan-300">
-                          GRP
+                        <span className="absolute -bottom-1 -right-1 px-1 py-0.2 rounded-md bg-cyan-950 border border-cyan-500/50 text-[10px] font-bold text-cyan-300">
+                          Group
                         </span>
                       )}
                     </div>
@@ -484,22 +479,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
                           >
                             {displayName}
                           </span>
-                          <span className="text-[10px] font-mono text-slate-500 truncate">
+                          <span className="text-xs text-slate-400 truncate">
                             {displayHandle}
                           </span>
                         </div>
-                        <span className="text-[10px] font-mono text-slate-500 shrink-0 ml-1">
+                        <span className="text-[11px] text-slate-400 shrink-0 ml-1">
                           {formatTimestamp(chat.updatedAt)}
                         </span>
                       </div>
 
                       <div className="flex items-center justify-between">
-                        <p className="text-xs text-slate-400 truncate pr-2 font-mono">
-                          {chat.lastMessage?.text || 'No transmissions yet'}
+                        <p className="text-xs text-slate-300 truncate pr-2">
+                          {chat.lastMessage?.text || 'No messages yet'}
                         </p>
                         {chat.isGroup && (
-                          <span className="text-[10px] font-mono text-purple-400 shrink-0">
-                            {chat.participants.length} ops
+                          <span className="text-[11px] text-purple-300 shrink-0">
+                            {chat.participants.length} members
                           </span>
                         )}
                       </div>
@@ -512,20 +507,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
         )}
       </div>
 
-      {/* Footer Grid Security Badge */}
-      <div className="p-3.5 border-t border-white/5 bg-black/20 backdrop-blur-md flex items-center justify-between text-[11px] font-mono text-slate-400">
+      {/* Footer Security Badge */}
+      <div className="p-3.5 border-t border-white/5 bg-black/20 backdrop-blur-md flex items-center justify-between text-xs text-slate-400">
         <span className="flex items-center gap-1.5 text-cyan-400">
-          <Zap className="w-3.5 h-3.5 animate-pulse" />
-          KAMINARI MESH v1.0
+          <Zap className="w-3.5 h-3.5" />
+          Kaminari Chat
         </span>
         <button
           type="button"
           onClick={onLockGate}
           className="text-slate-400 hover:text-cyan-300 flex items-center gap-1.5 cursor-pointer group py-1 px-2 rounded-lg hover:bg-white/5 transition-colors"
-          title="Lock Grid & Return to Passcode Gate"
+          title="Lock Screen"
         >
-          <ArrowLeft className="w-3 h-3 group-hover:-translate-x-0.5 transition-transform text-slate-400 group-hover:text-cyan-400" />
-          <span>BACK TO GATE</span>
+          <Lock className="w-3.5 h-3.5 group-hover:text-cyan-400" />
+          <span>Lock Screen</span>
         </button>
       </div>
     </div>
