@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Zap,
   Search,
@@ -19,6 +19,7 @@ import {
   Camera,
   Edit,
   UserCheck,
+  UserPlus,
   Flame,
   Bell,
   Volume2,
@@ -26,6 +27,7 @@ import {
 } from 'lucide-react';
 import { Chat, User, Story } from '../types';
 import { StoriesTray } from './StoriesTray';
+import { kaminariBackend } from '../services/kaminariBackend';
 
 interface SidebarProps {
   currentUser: User;
@@ -65,6 +67,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [activeNavTab, setActiveNavTab] = useState<'chats' | 'people' | 'stories' | 'settings'>('chats');
   const [chatCategory, setChatCategory] = useState<'all' | 'direct' | 'groups'>('all');
+  const [peopleFilter, setPeopleFilter] = useState<'all' | 'online'>('all');
+  const [searchingRemote, setSearchingRemote] = useState(false);
+
+  // Trigger live remote search if search query changes
+  useEffect(() => {
+    if (!searchQuery.trim()) return;
+    const timer = setTimeout(async () => {
+      try {
+        setSearchingRemote(true);
+        await kaminariBackend.searchUsersLive(searchQuery);
+      } catch (err) {
+        console.warn('Live search error:', err);
+      } finally {
+        setSearchingRemote(false);
+      }
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   // Filtered Chats
   const filteredChats = chats.filter((chat) => {
@@ -72,7 +92,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     if (chatCategory === 'groups' && !chat.isGroup) return false;
 
     if (!searchQuery.trim()) return true;
-    const q = searchQuery.toLowerCase();
+    const q = searchQuery.toLowerCase().trim();
 
     if (chat.isGroup) {
       return (
@@ -89,14 +109,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
     );
   });
 
+  // All other users (excluding current logged-in user)
+  const allOtherUsers = allUsers.filter((u) => u.id !== currentUser.id);
+
   // Filtered People / Contacts
-  const filteredUsers = allUsers.filter((u) => {
-    if (u.id === currentUser.id) return false;
+  const filteredUsers = allOtherUsers.filter((u) => {
+    if (peopleFilter === 'online' && u.status !== 'online') return false;
     if (!searchQuery.trim()) return true;
-    const q = searchQuery.toLowerCase();
+    const q = searchQuery.toLowerCase().trim().replace(/^@/, '');
     return (
       u.fullName.toLowerCase().includes(q) ||
       u.username.toLowerCase().includes(q) ||
+      u.email?.toLowerCase().includes(q) ||
       u.bio?.toLowerCase().includes(q)
     );
   });
@@ -261,16 +285,34 @@ export const Sidebar: React.FC<SidebarProps> = ({
             {/* Chat List */}
             <div className="flex-1 overflow-y-auto no-scrollbar divide-y divide-white/5 p-2 space-y-0.5">
               {filteredChats.length === 0 ? (
-                <div className="py-12 px-4 text-center text-slate-400 flex flex-col items-center gap-3">
+                <div className="py-10 px-4 text-center text-slate-400 flex flex-col items-center gap-3">
                   <div className="w-14 h-14 rounded-full bg-white/5 flex items-center justify-center">
                     <MessageSquare className="w-6 h-6 text-slate-400" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-bold text-white">No Conversations Found</h4>
+                    <h4 className="text-sm font-bold text-white">
+                      {searchQuery ? 'No Chats Found' : 'No Conversations Yet'}
+                    </h4>
                     <p className="text-xs text-slate-400 mt-0.5">
-                      Start a new message to begin chatting.
+                      {searchQuery
+                        ? `No existing chat matching "${searchQuery}"`
+                        : 'Start a direct chat or group message to begin chatting.'}
                     </p>
                   </div>
+
+                  {searchQuery && allOtherUsers.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveNavTab('people');
+                      }}
+                      className="mt-1 px-4 py-2 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 text-xs font-semibold hover:bg-cyan-500/30 transition-all cursor-pointer flex items-center gap-1.5"
+                    >
+                      <Users className="w-3.5 h-3.5" />
+                      <span>Search "{searchQuery}" in People ({allOtherUsers.length}) →</span>
+                    </button>
+                  )}
+
                   <button
                     type="button"
                     onClick={onOpenNewChat}
@@ -377,71 +419,166 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* ===================== TAB 2: PEOPLE ===================== */}
         {activeNavTab === 'people' && (
           <div className="flex flex-col flex-1 min-h-0 p-3">
-            {/* Search */}
-            <div className="relative mb-3">
+            {/* Search Input */}
+            <div className="relative mb-2.5">
               <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search contacts..."
-                className="w-full pl-10 pr-8 py-2.5 rounded-full bg-white/5 text-xs sm:text-sm text-white placeholder-slate-400 border border-white/10 focus:border-cyan-400 outline-none"
+                placeholder="Search by name, @username, or email..."
+                className="w-full pl-10 pr-9 py-2.5 rounded-full bg-white/5 text-xs sm:text-sm text-white placeholder-slate-400 border border-white/10 focus:border-cyan-400 focus:bg-white/10 outline-none transition-all"
               />
-            </div>
-
-            <div className="flex items-center justify-between px-1 py-1 mb-2">
-              <span className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-                Online Now ({filteredUsers.filter((u) => u.status === 'online').length})
-              </span>
-            </div>
-
-            <div className="space-y-1 overflow-y-auto no-scrollbar flex-1">
-              {filteredUsers.map((user) => (
-                <div
-                  key={user.id}
-                  onClick={() => {
-                    if (onSelectUser) {
-                      onSelectUser(user.id);
-                    } else {
-                      onOpenNewChat();
-                    }
-                  }}
-                  className="flex items-center justify-between p-3 rounded-2xl hover:bg-white/5 transition-all cursor-pointer group"
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-2.5 text-xs text-slate-400 hover:text-white"
                 >
-                  <div className="flex items-center gap-3 truncate min-w-0">
-                    <div className="relative shrink-0">
-                      <img
-                        src={user.avatar}
-                        alt={user.fullName}
-                        className="w-11 h-11 rounded-full object-cover border border-white/10 group-hover:border-cyan-400"
-                        referrerPolicy="no-referrer"
-                      />
-                      <span
-                        className={`absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-[#101018] ${
-                          user.status === 'online'
-                            ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]'
-                            : 'bg-slate-600'
-                        }`}
-                      />
-                    </div>
-                    <div className="truncate min-w-0">
-                      <div className="text-sm font-bold text-white group-hover:text-cyan-300 truncate">
-                        {user.fullName}
-                      </div>
-                      <div className="text-xs text-slate-400 truncate">
-                        @{user.username} {user.bio ? `• ${user.bio}` : ''}
-                      </div>
-                    </div>
-                  </div>
+                  ✕
+                </button>
+              )}
+            </div>
 
-                  <button
-                    type="button"
-                    className="px-3.5 py-1.5 rounded-full bg-gradient-to-r from-cyan-500/20 to-purple-500/20 text-cyan-300 border border-cyan-400/40 text-xs font-semibold shrink-0 ml-2"
-                  >
-                    Chat
-                  </button>
+            {/* People Filter Pills */}
+            <div className="flex items-center gap-1.5 mb-2.5 px-0.5 text-xs">
+              <button
+                type="button"
+                onClick={() => setPeopleFilter('all')}
+                className={`px-3 py-1.5 rounded-full font-semibold transition-all cursor-pointer ${
+                  peopleFilter === 'all'
+                    ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/40'
+                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                All Accounts ({allOtherUsers.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setPeopleFilter('online')}
+                className={`px-3 py-1.5 rounded-full font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  peopleFilter === 'online'
+                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/40'
+                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span>Online ({allOtherUsers.filter((u) => u.status === 'online').length})</span>
+              </button>
+              {searchingRemote && (
+                <span className="text-[11px] text-cyan-400 ml-auto flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping" />
+                  Searching...
+                </span>
+              )}
+            </div>
+
+            {/* People List */}
+            <div className="space-y-1.5 overflow-y-auto no-scrollbar flex-1">
+              {filteredUsers.length === 0 ? (
+                <div className="py-12 px-4 text-center text-slate-400 flex flex-col items-center gap-3">
+                  <div className="w-14 h-14 rounded-full bg-white/5 flex items-center justify-center">
+                    <Users className="w-6 h-6 text-slate-400" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-white">
+                      {searchQuery
+                        ? `No User Found for "${searchQuery}"`
+                        : allOtherUsers.length === 0
+                        ? 'No Other Accounts Registered Yet'
+                        : 'No Users in this Category'}
+                    </h4>
+                    <p className="text-xs text-slate-400 mt-1 max-w-xs leading-relaxed">
+                      {searchQuery
+                        ? 'Check the spelling or try searching by exact @username or email address.'
+                        : allOtherUsers.length === 0
+                        ? 'You are the first member! Share the app link or register another test account in an incognito window to chat.'
+                        : 'Switch to "All Accounts" to view all registered users.'}
+                    </p>
+                  </div>
+                  {allOtherUsers.length === 0 && (
+                    <button
+                      type="button"
+                      onClick={onOpenNewChat}
+                      className="mt-1 px-4 py-2 rounded-full bg-gradient-to-r from-[#00f3ff] to-[#9d00ff] text-black text-xs font-bold hover:brightness-110 cursor-pointer shadow-[0_0_15px_rgba(0,243,255,0.3)]"
+                    >
+                      + Compose Message
+                    </button>
+                  )}
                 </div>
-              ))}
+              ) : (
+                filteredUsers.map((user) => (
+                  <div
+                    key={user.id}
+                    onClick={() => {
+                      if (onSelectUser) {
+                        onSelectUser(user.id);
+                      } else {
+                        onOpenNewChat();
+                      }
+                    }}
+                    className="flex items-center justify-between p-3 rounded-2xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/5 hover:border-cyan-400/30 transition-all cursor-pointer group"
+                  >
+                    <div className="flex items-center gap-3 truncate min-w-0">
+                      <div className="relative shrink-0">
+                        <img
+                          src={user.avatar}
+                          alt={user.fullName}
+                          className="w-12 h-12 rounded-full object-cover border border-white/10 group-hover:border-cyan-400 transition-colors"
+                          referrerPolicy="no-referrer"
+                        />
+                        <span
+                          className={`absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-[#101018] ${
+                            user.status === 'online'
+                              ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]'
+                              : 'bg-slate-600'
+                          }`}
+                        />
+                      </div>
+                      <div className="truncate min-w-0">
+                        <div className="flex items-center gap-1.5 truncate">
+                          <span className="text-sm font-bold text-white group-hover:text-cyan-300 truncate transition-colors">
+                            {user.fullName}
+                          </span>
+                          {user.isAdmin && (
+                            <span className="px-1.5 py-0.2 rounded bg-cyan-950 border border-cyan-500/40 text-[9px] font-bold text-cyan-300 uppercase">
+                              Admin
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-xs text-slate-400 truncate">
+                          @{user.username} {user.bio ? `• ${user.bio}` : ''}
+                        </div>
+                        {user.status === 'online' ? (
+                          <div className="text-[11px] text-emerald-400 font-medium">
+                            Active now
+                          </div>
+                        ) : (
+                          <div className="text-[11px] text-slate-500">
+                            Offline
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (onSelectUser) {
+                          onSelectUser(user.id);
+                        } else {
+                          onOpenNewChat();
+                        }
+                      }}
+                      className="px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500/20 to-purple-500/20 text-cyan-300 border border-cyan-400/40 hover:border-cyan-400 text-xs font-bold shrink-0 ml-2 shadow-[0_0_10px_rgba(0,243,255,0.1)] group-hover:scale-105 transition-all cursor-pointer flex items-center gap-1.5"
+                    >
+                      <MessageSquare className="w-3.5 h-3.5" />
+                      <span>Chat</span>
+                    </button>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         )}

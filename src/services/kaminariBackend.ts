@@ -10,11 +10,13 @@ import {
   doc,
   setDoc,
   getDocs,
+  getDoc,
   query,
   where,
   updateDoc,
   deleteDoc,
   serverTimestamp,
+  onSnapshot,
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import {
@@ -63,6 +65,7 @@ class KaminariBackendService {
   constructor() {
     this.initLocalStorage();
     this.setupBroadcastListener();
+    this.initFirestoreSync();
   }
 
   // Check access gate
@@ -233,6 +236,191 @@ class KaminariBackendService {
         this.notify(`typing_${payload.chatId}`, payload);
       }
     };
+  }
+
+  private initFirestoreSync() {
+    if (!isFirebaseConfigured || !db) return;
+
+    // 1. Live Sync Users from Firestore
+    try {
+      const usersRef = collection(db, 'users');
+      onSnapshot(
+        usersRef,
+        (snapshot) => {
+          const remoteUsers: User[] = [];
+          const botUserIds = new Set(['user_raijin', 'user_valkyrie', 'user_volt', 'user_cipher', 'user_storm']);
+          const botUsernames = new Set(['raijin_lightning', 'valkyrie_core', 'volt_overload', 'cipher_neon', 'storm_rider']);
+
+          snapshot.forEach((docSnap) => {
+            const data = docSnap.data() as User;
+            if (
+              data &&
+              data.id &&
+              !botUserIds.has(data.id) &&
+              !botUsernames.has(data.username?.toLowerCase())
+            ) {
+              remoteUsers.push({
+                ...data,
+                id: docSnap.id,
+              });
+            }
+          });
+
+          if (remoteUsers.length > 0) {
+            const userMap = new Map<string, User>();
+            remoteUsers.forEach((u) => userMap.set(u.id, u));
+            this.users.forEach((u) => {
+              if (!userMap.has(u.id)) {
+                userMap.set(u.id, u);
+              }
+            });
+            this.users = Array.from(userMap.values());
+            localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(this.users));
+            this.notify('users', this.users);
+
+            // Update current user if exists in remote
+            if (this.currentUser && userMap.has(this.currentUser.id)) {
+              const freshCurrent = userMap.get(this.currentUser.id)!;
+              this.currentUser = { ...this.currentUser, ...freshCurrent };
+              localStorage.setItem(STORAGE_KEY_CURRENT_USER, JSON.stringify(this.currentUser));
+              this.notify('auth', this.currentUser);
+            }
+          }
+        },
+        (error) => {
+          console.warn('Firestore live users sync warning:', error);
+        }
+      );
+    } catch (err) {
+      console.warn('Failed to attach Firestore users listener:', err);
+    }
+
+    // 2. Live Sync Chats from Firestore
+    try {
+      const chatsRef = collection(db, 'chats');
+      onSnapshot(
+        chatsRef,
+        (snapshot) => {
+          const remoteChats: Chat[] = [];
+          snapshot.forEach((docSnap) => {
+            const data = docSnap.data() as Chat;
+            if (data && data.id) {
+              remoteChats.push({
+                ...data,
+                id: docSnap.id,
+              });
+            }
+          });
+
+          if (remoteChats.length > 0) {
+            const chatMap = new Map<string, Chat>();
+            remoteChats.forEach((c) => chatMap.set(c.id, c));
+            this.chats.forEach((c) => {
+              if (!chatMap.has(c.id)) {
+                chatMap.set(c.id, c);
+              }
+            });
+            this.chats = Array.from(chatMap.values()).sort(
+              (a, b) => (b.updatedAt || 0) - (a.updatedAt || 0)
+            );
+            localStorage.setItem(STORAGE_KEY_CHATS, JSON.stringify(this.chats));
+            this.notify('chats', this.getChatsForUser());
+          }
+        },
+        (error) => {
+          console.warn('Firestore live chats sync warning:', error);
+        }
+      );
+    } catch (err) {
+      console.warn('Failed to attach Firestore chats listener:', err);
+    }
+
+    // 3. Live Sync Stories from Firestore
+    try {
+      const storiesRef = collection(db, 'stories');
+      onSnapshot(
+        storiesRef,
+        (snapshot) => {
+          const now = Date.now();
+          const remoteStories: Story[] = [];
+          snapshot.forEach((docSnap) => {
+            const data = docSnap.data() as Story;
+            if (data && data.id && data.expiresAt > now) {
+              remoteStories.push({
+                ...data,
+                id: docSnap.id,
+              });
+            }
+          });
+          if (remoteStories.length > 0) {
+            this.stories = remoteStories.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+            localStorage.setItem(STORAGE_KEY_STORIES, JSON.stringify(this.stories));
+            this.notify('stories', this.stories);
+          }
+        },
+        (error) => {
+          console.warn('Firestore live stories sync warning:', error);
+        }
+      );
+    } catch (err) {
+      console.warn('Failed to attach Firestore stories listener:', err);
+    }
+  }
+
+  async searchUsersLive(queryStr: string): Promise<User[]> {
+    const q = queryStr.trim().toLowerCase().replace(/^@/, '');
+    if (!q) {
+      return this.users.filter((u) => u.id !== this.currentUser?.id);
+    }
+
+    // 1. Search local memory
+    const localMatches = this.users.filter((u) => {
+      if (u.id === this.currentUser?.id) return false;
+      return (
+        u.username.toLowerCase().includes(q) ||
+        u.fullName.toLowerCase().includes(q) ||
+        u.email?.toLowerCase().includes(q) ||
+        u.bio?.toLowerCase().includes(q)
+      );
+    });
+
+    // 2. If Firebase is live, search remote Firestore
+    if (isFirebaseConfigured && db) {
+      try {
+        const usersRef = collection(db, 'users');
+        const snap = await getDocs(usersRef);
+        const remoteUsers: User[] = [];
+        const botUserIds = new Set(['user_raijin', 'user_valkyrie', 'user_volt', 'user_cipher', 'user_storm']);
+
+        snap.forEach((docSnap) => {
+          const data = docSnap.data() as User;
+          if (data && data.id && data.id !== this.currentUser?.id && !botUserIds.has(data.id)) {
+            if (
+              data.username?.toLowerCase().includes(q) ||
+              data.fullName?.toLowerCase().includes(q) ||
+              data.email?.toLowerCase().includes(q)
+            ) {
+              remoteUsers.push({ ...data, id: docSnap.id });
+            }
+          }
+        });
+
+        const mergedMap = new Map<string, User>();
+        localMatches.forEach((u) => mergedMap.set(u.id, u));
+        remoteUsers.forEach((u) => {
+          mergedMap.set(u.id, u);
+          if (!this.users.some((existing) => existing.id === u.id)) {
+            this.users.unshift(u);
+          }
+        });
+        this.saveUsers();
+        return Array.from(mergedMap.values());
+      } catch (err) {
+        console.warn('Remote search warning:', err);
+      }
+    }
+
+    return localMatches;
   }
 
   private broadcast(type: string, payload?: any) {
