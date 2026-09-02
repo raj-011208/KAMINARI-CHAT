@@ -35,6 +35,26 @@ const STORAGE_KEY_STORIES = 'kaminari_stories_v1';
 const STORAGE_KEY_ACCESS_GRANTED = 'kaminari_access_granted_v1';
 const STORAGE_KEY_SETTINGS = 'kaminari_system_settings_v1';
 
+// Recursive sanitizer to remove `undefined` fields which cause Firestore write failures
+export function sanitizeForFirestore<T>(data: T): T {
+  if (data === undefined) {
+    return null as any;
+  }
+  if (data === null || typeof data !== 'object') {
+    return data;
+  }
+  if (Array.isArray(data)) {
+    return data.map((item) => sanitizeForFirestore(item)) as any;
+  }
+  const clean: Record<string, any> = {};
+  for (const [key, value] of Object.entries(data)) {
+    if (value !== undefined) {
+      clean[key] = sanitizeForFirestore(value);
+    }
+  }
+  return clean as any;
+}
+
 // BroadcastChannel for instant cross-tab real-time sync in local mode
 let syncChannel: BroadcastChannel | null = null;
 try {
@@ -61,6 +81,7 @@ class KaminariBackendService {
   private currentUser: User | null = null;
   private settings: SystemSettings = { ...DEFAULT_SETTINGS };
   private listeners: Map<string, Set<(data: any) => void>> = new Map();
+  private messageListeners: Map<string, () => void> = new Map();
 
   constructor() {
     this.initLocalStorage();
@@ -304,17 +325,21 @@ class KaminariBackendService {
           const remoteChats: Chat[] = [];
           snapshot.forEach((docSnap) => {
             const data = docSnap.data() as Chat;
-            if (data && data.id) {
+            if (data && (data.id || docSnap.id)) {
               remoteChats.push({
                 ...data,
-                id: docSnap.id,
+                id: docSnap.id || data.id,
               });
             }
           });
 
           if (remoteChats.length > 0) {
             const chatMap = new Map<string, Chat>();
-            remoteChats.forEach((c) => chatMap.set(c.id, c));
+            remoteChats.forEach((c) => {
+              chatMap.set(c.id, c);
+              // Ensure real-time message listener is attached for all active chats
+              this.listenToChatMessages(c.id);
+            });
             this.chats.forEach((c) => {
               if (!chatMap.has(c.id)) {
                 chatMap.set(c.id, c);
@@ -465,6 +490,66 @@ class KaminariBackendService {
     this.broadcast('SYNC_ALL');
   }
 
+  // Attach live Firestore listener to messages subcollection for a given chat
+  listenToChatMessages(chatId: string): void {
+    if (!isFirebaseConfigured || !db || !chatId) return;
+    if (this.messageListeners.has(chatId)) return;
+
+    try {
+      const messagesRef = collection(db, 'chats', chatId, 'messages');
+      const unsubscribe = onSnapshot(
+        messagesRef,
+        (snapshot) => {
+          const remoteMessages: Message[] = [];
+          snapshot.forEach((docSnap) => {
+            const data = docSnap.data() as Message;
+            if (data && (data.id || docSnap.id)) {
+              remoteMessages.push({
+                ...data,
+                id: docSnap.id || data.id,
+              });
+            }
+          });
+
+          // Sort messages ascending by createdAt
+          remoteMessages.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+
+          // Sync into local cache
+          this.messages[chatId] = remoteMessages;
+          localStorage.setItem(STORAGE_KEY_MESSAGES, JSON.stringify(this.messages));
+
+          // Notify all subscribers of this chat's messages
+          this.notify(`messages_${chatId}`, remoteMessages);
+
+          // Update last message in chat preview if available
+          if (remoteMessages.length > 0) {
+            const lastMsg = remoteMessages[remoteMessages.length - 1];
+            const chatIdx = this.chats.findIndex((c) => c.id === chatId);
+            if (chatIdx !== -1) {
+              this.chats[chatIdx].lastMessage = {
+                text: lastMsg.mediaType && !lastMsg.text ? `[${lastMsg.mediaType.toUpperCase()}]` : lastMsg.text,
+                senderId: lastMsg.senderId,
+                senderName: lastMsg.senderName,
+                timestamp: lastMsg.createdAt,
+                type: lastMsg.mediaType || 'text',
+              };
+              this.chats[chatIdx].updatedAt = Math.max(this.chats[chatIdx].updatedAt || 0, lastMsg.createdAt);
+              localStorage.setItem(STORAGE_KEY_CHATS, JSON.stringify(this.chats));
+              this.notify('chats', this.getChatsForUser());
+            }
+          }
+        },
+        (error) => {
+          console.warn(`Firestore messages sync warning for chat ${chatId}:`, error);
+        }
+      );
+
+      this.messageListeners.set(chatId, unsubscribe);
+    } catch (err) {
+      console.warn(`Failed to attach Firestore messages listener for ${chatId}:`, err);
+    }
+  }
+
   // Reactive listener registry
   subscribe(event: string, callback: (data: any) => void): () => void {
     if (!this.listeners.has(event)) {
@@ -485,6 +570,7 @@ class KaminariBackendService {
       callback(this.getSystemSettings());
     } else if (event.startsWith('messages_')) {
       const chatId = event.replace('messages_', '');
+      this.listenToChatMessages(chatId);
       callback(this.getMessages(chatId));
     }
 
@@ -994,6 +1080,9 @@ class KaminariBackendService {
     const participants = [this.currentUser.id, otherUserId].sort();
     const chatId = `chat_dm_${participants.join('_')}`;
 
+    // Ensure listener is attached
+    this.listenToChatMessages(chatId);
+
     const existingChat = this.chats.find((c) => c.id === chatId);
     if (existingChat) {
       return existingChat;
@@ -1019,13 +1108,15 @@ class KaminariBackendService {
     };
 
     this.chats.unshift(newChat);
-    this.messages[chatId] = [];
+    if (!this.messages[chatId]) {
+      this.messages[chatId] = [];
+    }
     this.saveChats();
     this.saveMessages(chatId);
 
     if (isFirebaseConfigured && db) {
       try {
-        await setDoc(doc(db, 'chats', chatId), newChat);
+        await setDoc(doc(db, 'chats', chatId), sanitizeForFirestore(newChat), { merge: true });
       } catch (e) {
         console.warn('Firestore createDirectChat error:', e);
       }
@@ -1044,6 +1135,9 @@ class KaminariBackendService {
 
     const participantIds = Array.from(new Set([this.currentUser.id, ...params.participantIds]));
     const chatId = `chat_group_${Date.now()}`;
+
+    // Ensure listener is attached
+    this.listenToChatMessages(chatId);
 
     const participantDetails: Record<string, any> = {};
     participantIds.forEach((pid) => {
@@ -1095,7 +1189,8 @@ class KaminariBackendService {
 
     if (isFirebaseConfigured && db) {
       try {
-        await setDoc(doc(db, 'chats', chatId), newGroup);
+        await setDoc(doc(db, 'chats', chatId), sanitizeForFirestore(newGroup));
+        await setDoc(doc(db, 'chats', chatId, 'messages', this.messages[chatId][0].id), sanitizeForFirestore(this.messages[chatId][0]));
       } catch (e) {
         console.warn('Firestore createGroupChat error:', e);
       }
@@ -1188,15 +1283,23 @@ class KaminariBackendService {
     this.messages[params.chatId].push(newMessage);
 
     // Update chat last message
+    const lastMsg: {
+      text: string;
+      senderId: string;
+      senderName: string;
+      timestamp: number;
+      type: 'call' | 'audio' | 'video' | 'text' | 'image' | 'file';
+    } = {
+      text: params.mediaType && !params.text ? `[${params.mediaType.toUpperCase()}]` : params.text,
+      senderId: this.currentUser.id,
+      senderName: this.currentUser.fullName,
+      timestamp: Date.now(),
+      type: params.mediaType || 'text',
+    };
+
     const chatIndex = this.chats.findIndex((c) => c.id === params.chatId);
     if (chatIndex !== -1) {
-      this.chats[chatIndex].lastMessage = {
-        text: params.mediaType && !params.text ? `[${params.mediaType.toUpperCase()}]` : params.text,
-        senderId: this.currentUser.id,
-        senderName: this.currentUser.fullName,
-        timestamp: Date.now(),
-        type: params.mediaType || 'text',
-      };
+      this.chats[chatIndex].lastMessage = lastMsg;
       this.chats[chatIndex].updatedAt = Date.now();
 
       // Move chat to top
@@ -1207,14 +1310,17 @@ class KaminariBackendService {
 
     this.saveMessages(params.chatId);
 
+    // Make sure listener is active for this chat
+    this.listenToChatMessages(params.chatId);
+
     // If Firestore is live, persist to subcollection
     if (isFirebaseConfigured && db) {
       try {
-        await setDoc(doc(db, 'chats', params.chatId, 'messages', messageId), newMessage);
-        await updateDoc(doc(db, 'chats', params.chatId), {
-          lastMessage: this.chats[0]?.lastMessage,
-          updatedAt: serverTimestamp(),
-        });
+        await setDoc(doc(db, 'chats', params.chatId, 'messages', messageId), sanitizeForFirestore(newMessage));
+        await updateDoc(doc(db, 'chats', params.chatId), sanitizeForFirestore({
+          lastMessage: lastMsg,
+          updatedAt: Date.now(),
+        }));
       } catch (e) {
         console.warn('Firestore sendMessage error:', e);
       }
@@ -1239,15 +1345,32 @@ class KaminariBackendService {
 
     let modified = false;
     const msgs = this.messages[chatId] || [];
+    const modifiedMsgIds: string[] = [];
     msgs.forEach((msg) => {
+      if (!msg.readBy) msg.readBy = [];
       if (!msg.readBy.includes(currentId)) {
         msg.readBy.push(currentId);
         modified = true;
+        modifiedMsgIds.push(msg.id);
       }
     });
 
     if (modified) {
       this.saveMessages(chatId);
+      if (isFirebaseConfigured && db) {
+        modifiedMsgIds.forEach(async (msgId) => {
+          try {
+            const msg = msgs.find((m) => m.id === msgId);
+            if (msg) {
+              await updateDoc(doc(db, 'chats', chatId, 'messages', msgId), sanitizeForFirestore({
+                readBy: msg.readBy,
+              }));
+            }
+          } catch (e) {
+            // ignore
+          }
+        });
+      }
     }
   }
 
@@ -1272,6 +1395,16 @@ class KaminariBackendService {
     }
 
     this.saveMessages(chatId);
+
+    if (isFirebaseConfigured && db) {
+      try {
+        await updateDoc(doc(db, 'chats', chatId, 'messages', messageId), sanitizeForFirestore({
+          reactions: msg.reactions || {},
+        }));
+      } catch (e) {
+        console.warn('Firestore toggleReaction error:', e);
+      }
+    }
   }
 
   // GLOBAL DELETE: "Delete Message for Everyone"
