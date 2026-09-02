@@ -10,6 +10,7 @@ import { ChatArea } from './components/ChatArea';
 import { StoriesModal } from './components/StoriesModal';
 import { CreateStoryModal } from './components/CreateStoryModal';
 import { CallScreen } from './components/CallScreen';
+import { IncomingCallModal } from './components/IncomingCallModal';
 import { NewChatModal } from './components/NewChatModal';
 import { ClearChatConfirmModal } from './components/ClearChatConfirmModal';
 import { UserProfileModal } from './components/UserProfileModal';
@@ -35,6 +36,7 @@ export default function App() {
   const [showInstallModal, setShowInstallModal] = useState(false);
   const [clearChatTargetId, setClearChatTargetId] = useState<string | null>(null);
   const [activeCallSession, setActiveCallSession] = useState<CallSession | null>(null);
+  const [incomingCall, setIncomingCall] = useState<CallSession | null>(null);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   // Initialize Access Gate & Auth
@@ -70,14 +72,28 @@ export default function App() {
       setStories(storiesList || []);
     });
 
+    const unsubIncomingCall = kaminariBackend.subscribe('incoming_call', (call: CallSession) => {
+      if (!call) return;
+      const curUser = kaminariBackend.getCurrentUser();
+      if (
+        curUser &&
+        call.receiverId === curUser.id &&
+        call.status === 'calling' &&
+        (!activeCallSession || activeCallSession.status === 'ended')
+      ) {
+        setIncomingCall(call);
+      }
+    });
+
     return () => {
       unsubAuth();
       unsubAccess();
       unsubUsers();
       unsubChats();
       unsubStories();
+      unsubIncomingCall();
     };
-  }, []);
+  }, [activeChatId, activeCallSession]);
 
   // Handlers
   const handleAccessGranted = () => {
@@ -100,9 +116,6 @@ export default function App() {
     const otherId = activeChat.participants.find((p) => p !== currentUser.id);
     if (!otherId) return;
 
-    const otherDetail = activeChat.participantDetails[otherId];
-    const otherUser = allUsers.find((u) => u.id === otherId);
-
     // Send calling notification message in chatbox
     const callType = isVideo ? 'Video Call' : 'Voice Call';
     const icon = isVideo ? '📹' : '📞';
@@ -113,21 +126,30 @@ export default function App() {
       mediaType: 'call',
     });
 
-    const session: CallSession = {
-      id: `call_${Date.now()}`,
-      chatId: activeChat.id,
-      callerId: currentUser.id,
-      callerName: currentUser.fullName,
-      callerAvatar: currentUser.avatar,
-      receiverId: otherId,
-      receiverName: otherDetail?.fullName || otherUser?.fullName || 'Operative',
-      receiverAvatar: otherDetail?.avatar || otherUser?.avatar || '',
-      isVideo,
-      status: 'calling',
-      startTime: Date.now(),
-    };
+    try {
+      const session = await kaminariBackend.initiateCall({
+        chatId: activeChat.id,
+        receiverId: otherId,
+        isVideo,
+      });
+      setActiveCallSession(session);
+    } catch (err) {
+      console.error('Failed to initiate call:', err);
+    }
+  };
 
-    setActiveCallSession(session);
+  const handleAcceptIncomingCall = async (isVideo: boolean) => {
+    if (!incomingCall) return;
+    const call = { ...incomingCall, isVideo, status: 'connected' as const };
+    setIncomingCall(null);
+    await kaminariBackend.answerCall(call.id, isVideo);
+    setActiveCallSession(call);
+  };
+
+  const handleDeclineIncomingCall = async () => {
+    if (!incomingCall) return;
+    await kaminariBackend.rejectCall(incomingCall.id, 'rejected');
+    setIncomingCall(null);
   };
 
   const handleEndCall = async (durationSec?: number) => {
@@ -145,11 +167,13 @@ export default function App() {
       const durationText = durationSec && durationSec > 0 ? ` (${formatDuration(durationSec)})` : '';
 
       await kaminariBackend.sendMessage({
-        chatId: activeCallSession.chatId,
+        chatId: activeCallSession.chatId || '',
         text: `${icon} ${callType} Ended${durationText}`,
         mediaType: 'call',
         callDuration: durationSec,
       });
+
+      await kaminariBackend.endCall(activeCallSession.id, durationSec);
     }
 
     setActiveCallSession(null);
@@ -318,6 +342,17 @@ export default function App() {
             </button>
           </footer>
         </div>
+
+        {/* MODAL: Incoming Call Alert */}
+        <AnimatePresence>
+          {incomingCall && (
+            <IncomingCallModal
+              call={incomingCall}
+              onAccept={handleAcceptIncomingCall}
+              onDecline={handleDeclineIncomingCall}
+            />
+          )}
+        </AnimatePresence>
 
         {/* MODAL: Active WebRTC Audio / Video Call */}
         <AnimatePresence>

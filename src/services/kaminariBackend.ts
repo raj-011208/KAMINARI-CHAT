@@ -390,6 +390,45 @@ class KaminariBackendService {
     } catch (err) {
       console.warn('Failed to attach Firestore stories listener:', err);
     }
+
+    // 4. Live Sync Active Calling & Ringing Sessions
+    try {
+      const callsRef = collection(db, 'calls');
+      onSnapshot(
+        callsRef,
+        (snapshot) => {
+          const now = Date.now();
+          snapshot.forEach((docSnap) => {
+            const data = docSnap.data() as CallSession;
+            if (data && (data.id || docSnap.id)) {
+              const callObj: CallSession = {
+                ...data,
+                id: docSnap.id || data.id,
+              };
+
+              // Notify specific call subscribers
+              this.notify(`call_${callObj.id}`, callObj);
+              this.notify(`call_signal_${callObj.receiverId}`, callObj);
+
+              // Check if this is an active ringing incoming call for current user
+              if (
+                this.currentUser &&
+                callObj.receiverId === this.currentUser.id &&
+                callObj.status === 'calling' &&
+                now - (callObj.startTime || (data as any).createdAt || now) < 60000
+              ) {
+                this.notify('incoming_call', callObj);
+              }
+            }
+          });
+        },
+        (error) => {
+          console.warn('Firestore live calls sync warning:', error);
+        }
+      );
+    } catch (err) {
+      console.warn('Failed to attach Firestore calls listener:', err);
+    }
   }
 
   async searchUsersLive(queryStr: string): Promise<User[]> {
@@ -909,6 +948,52 @@ class KaminariBackendService {
     return updatedUser;
   }
 
+  async searchUsersLive(queryStr: string): Promise<User[]> {
+    const q = queryStr.trim().toLowerCase().replace(/^@/, '');
+    if (!q) return this.users;
+
+    if (isFirebaseConfigured && db) {
+      try {
+        const usersRef = collection(db, 'users');
+        const snap = await getDocs(usersRef);
+        const remoteUsers: User[] = [];
+        const botUserIds = new Set(['user_raijin', 'user_valkyrie', 'user_volt', 'user_cipher', 'user_storm']);
+
+        snap.forEach((docSnap) => {
+          const data = docSnap.data() as User;
+          if (data && (data.id || docSnap.id) && !botUserIds.has(data.id || docSnap.id)) {
+            remoteUsers.push({
+              ...data,
+              id: docSnap.id || data.id,
+            });
+          }
+        });
+
+        if (remoteUsers.length > 0) {
+          const userMap = new Map<string, User>();
+          remoteUsers.forEach((u) => userMap.set(u.id, u));
+          this.users.forEach((u) => {
+            if (!userMap.has(u.id)) {
+              userMap.set(u.id, u);
+            }
+          });
+          this.users = Array.from(userMap.values());
+          localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(this.users));
+          this.notify('users', this.users);
+        }
+      } catch (err) {
+        console.warn('searchUsersLive error:', err);
+      }
+    }
+
+    return this.users.filter(
+      (u) =>
+        u.fullName.toLowerCase().includes(q) ||
+        u.username.toLowerCase().includes(q) ||
+        u.email.toLowerCase().includes(q)
+    );
+  }
+
   // ADMIN USER MANAGEMENT METHODS
   getUsers(): User[] {
     return this.users;
@@ -1316,11 +1401,19 @@ class KaminariBackendService {
     // If Firestore is live, persist to subcollection
     if (isFirebaseConfigured && db) {
       try {
-        await setDoc(doc(db, 'chats', params.chatId, 'messages', messageId), sanitizeForFirestore(newMessage));
-        await updateDoc(doc(db, 'chats', params.chatId), sanitizeForFirestore({
-          lastMessage: lastMsg,
-          updatedAt: Date.now(),
-        }));
+        const chatObj = this.chats.find((c) => c.id === params.chatId);
+        if (chatObj) {
+          await setDoc(
+            doc(db, 'chats', params.chatId),
+            sanitizeForFirestore({
+              ...chatObj,
+              lastMessage: lastMsg,
+              updatedAt: Date.now(),
+            }),
+            { merge: true }
+          );
+        }
+        await setDoc(doc(db, 'chats', params.chatId, 'messages', messageId), sanitizeForFirestore(newMessage), { merge: true });
       } catch (e) {
         console.warn('Firestore sendMessage error:', e);
       }
@@ -1569,7 +1662,119 @@ class KaminariBackendService {
     });
   }
 
-  // CALL SIGNALING DISPATCHER
+  // CALL SIGNALING & LIFECYCLE METHODS
+  async initiateCall(params: {
+    chatId?: string;
+    receiverId: string;
+    isVideo: boolean;
+  }): Promise<CallSession> {
+    if (!this.currentUser) throw new Error('Not authenticated');
+
+    const receiver = this.getUserById(params.receiverId);
+    const callId = `call_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+
+    const callSession: CallSession = {
+      id: callId,
+      chatId: params.chatId,
+      callerId: this.currentUser.id,
+      callerName: this.currentUser.fullName,
+      callerAvatar: this.currentUser.avatar,
+      receiverId: params.receiverId,
+      receiverName: receiver?.fullName || 'Operative',
+      receiverAvatar: receiver?.avatar || '',
+      isVideo: params.isVideo,
+      status: 'calling',
+      startTime: Date.now(),
+    };
+
+    // Save in Firestore
+    if (isFirebaseConfigured && db) {
+      try {
+        await setDoc(doc(db, 'calls', callId), sanitizeForFirestore(callSession));
+      } catch (err) {
+        console.warn('Firestore initiateCall notice:', err);
+      }
+    }
+
+    this.notify(`call_${callId}`, callSession);
+    this.sendCallSignal(params.receiverId, { type: 'INCOMING_CALL', call: callSession });
+    return callSession;
+  }
+
+  async answerCall(callId: string, isVideo?: boolean): Promise<void> {
+    if (!this.currentUser) return;
+
+    const updates: Partial<CallSession> = {
+      status: 'connected',
+    };
+    if (isVideo !== undefined) {
+      updates.isVideo = isVideo;
+    }
+
+    if (isFirebaseConfigured && db) {
+      try {
+        await updateDoc(doc(db, 'calls', callId), sanitizeForFirestore(updates));
+      } catch (err) {
+        console.warn('Firestore answerCall notice:', err);
+      }
+    }
+
+    this.notify(`call_${callId}`, { id: callId, ...updates });
+    this.broadcast('CALL_SIGNAL', { type: 'CALL_ANSWERED', callId, updates });
+  }
+
+  async rejectCall(callId: string, reason: 'rejected' | 'busy' | 'ended' = 'rejected'): Promise<void> {
+    const updates: Partial<CallSession> = {
+      status: reason,
+    };
+
+    if (isFirebaseConfigured && db) {
+      try {
+        await updateDoc(doc(db, 'calls', callId), sanitizeForFirestore(updates));
+      } catch (err) {
+        console.warn('Firestore rejectCall notice:', err);
+      }
+    }
+
+    this.notify(`call_${callId}`, { id: callId, ...updates });
+    this.broadcast('CALL_SIGNAL', { type: 'CALL_ENDED', callId, reason });
+  }
+
+  async endCall(callId: string, durationSec: number = 0): Promise<void> {
+    const updates: Partial<CallSession> = {
+      status: 'ended',
+      duration: durationSec,
+    };
+
+    if (isFirebaseConfigured && db) {
+      try {
+        await updateDoc(doc(db, 'calls', callId), sanitizeForFirestore(updates));
+      } catch (err) {
+        console.warn('Firestore endCall notice:', err);
+      }
+    }
+
+    this.notify(`call_${callId}`, { id: callId, ...updates });
+    this.broadcast('CALL_SIGNAL', { type: 'CALL_ENDED', callId, durationSec });
+  }
+
+  listenToCall(callId: string, callback: (call: CallSession) => void): () => void {
+    if (isFirebaseConfigured && db) {
+      try {
+        const unsub = onSnapshot(doc(db, 'calls', callId), (snap) => {
+          if (snap.exists()) {
+            const data = snap.data() as CallSession;
+            callback({ ...data, id: snap.id });
+          }
+        });
+        return unsub;
+      } catch (e) {
+        console.warn('listenToCall fallback:', e);
+      }
+    }
+    return this.subscribe(`call_${callId}`, callback);
+  }
+
   sendCallSignal(receiverId: string, signal: any) {
     this.notify(`call_signal_${receiverId}`, signal);
     this.broadcast('CALL_SIGNAL', { receiverId, ...signal });

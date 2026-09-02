@@ -21,5 +21,10 @@ service cloud.firestore {
       allow read: if true;
       allow write: if request.auth != null || true;
     }
+
+    match /calls/{callId} {
+      allow read: if true;
+      allow write: if request.auth != null || true;
+    }
   }
 }

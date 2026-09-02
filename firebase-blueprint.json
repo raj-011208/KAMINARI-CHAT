@@ -1,0 +1,95 @@
+{
+  "entities": {
+    "users": {
+      "fields": {
+        "id": { "type": "string" },
+        "username": { "type": "string" },
+        "fullName": { "type": "string" },
+        "email": { "type": "string" },
+        "avatar": { "type": "string" },
+        "bio": { "type": "string" },
+        "status": { "type": "string" },
+        "lastSeen": { "type": "number" },
+        "createdAt": { "type": "number" },
+        "customStatus": { "type": "string" },
+        "role": { "type": "string" },
+        "isBanned": { "type": "boolean" }
+      }
+    },
+    "chats": {
+      "fields": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "type": { "type": "string" },
+        "participants": { "type": "array" },
+        "participantDetails": { "type": "map" },
+        "avatar": { "type": "string" },
+        "description": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" },
+        "unreadCount": { "type": "number" },
+        "lastMessage": { "type": "map" },
+        "isEncrypted": { "type": "boolean" },
+        "isGroup": { "type": "boolean" }
+      },
+      "subcollections": {
+        "messages": {
+          "fields": {
+            "id": { "type": "string" },
+            "chatId": { "type": "string" },
+            "senderId": { "type": "string" },
+            "senderName": { "type": "string" },
+            "senderAvatar": { "type": "string" },
+            "text": { "type": "string" },
+            "mediaUrl": { "type": "string" },
+            "mediaType": { "type": "string" },
+            "mediaName": { "type": "string" },
+            "audioDuration": { "type": "number" },
+            "callDuration": { "type": "number" },
+            "createdAt": { "type": "number" },
+            "readBy": { "type": "array" },
+            "reactions": { "type": "map" },
+            "replyTo": { "type": "map" }
+          }
+        }
+      }
+    },
+    "calls": {
+      "fields": {
+        "id": { "type": "string" },
+        "chatId": { "type": "string" },
+        "callerId": { "type": "string" },
+        "callerName": { "type": "string" },
+        "callerAvatar": { "type": "string" },
+        "receiverId": { "type": "string" },
+        "receiverName": { "type": "string" },
+        "receiverAvatar": { "type": "string" },
+        "isVideo": { "type": "boolean" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "answeredAt": { "type": "number" },
+        "endedAt": { "type": "number" },
+        "sdpOffer": { "type": "string" },
+        "sdpAnswer": { "type": "string" },
+        "callerIceCandidates": { "type": "array" },
+        "receiverIceCandidates": { "type": "array" }
+      }
+    },
+    "stories": {
+      "fields": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "username": { "type": "string" },
+        "userAvatar": { "type": "string" },
+        "userFullName": { "type": "string" },
+        "mediaUrl": { "type": "string" },
+        "mediaType": { "type": "string" },
+        "caption": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "expiresAt": { "type": "number" },
+        "views": { "type": "array" },
+        "reactions": { "type": "map" }
+      }
+    }
+  }
+}

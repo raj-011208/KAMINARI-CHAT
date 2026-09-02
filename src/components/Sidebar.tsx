@@ -540,7 +540,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                           <span className="text-sm font-bold text-white group-hover:text-cyan-300 truncate transition-colors">
                             {user.fullName}
                           </span>
-                          {user.isAdmin && (
+                          {user.role === 'admin' && (
                             <span className="px-1.5 py-0.2 rounded bg-cyan-950 border border-cyan-500/40 text-[9px] font-bold text-cyan-300 uppercase">
                               Admin
                             </span>

@@ -15,9 +15,11 @@ import {
   Sparkles,
   Shield,
   ArrowLeft,
+  Radio,
 } from 'lucide-react';
 import { CallSession, User } from '../types';
 import { kaminariBackend } from '../services/kaminariBackend';
+import { callSoundEffects } from '../services/callSoundEffects';
 
 interface CallScreenProps {
   session: CallSession;
@@ -35,19 +37,48 @@ export const CallScreen: React.FC<CallScreenProps> = ({
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [callDuration, setCallDuration] = useState(0);
-  const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected'>('connecting');
+  const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected'>(
+    session.status === 'connected' ? 'connected' : 'connecting'
+  );
 
   const localVideoRef = useRef<HTMLVideoElement>(null);
-  const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
   const screenStreamRef = useRef<MediaStream | null>(null);
-  const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
 
   const isCaller = session.callerId === currentUser.id;
   const peerName = isCaller ? session.receiverName : session.callerName;
   const peerAvatar = isCaller ? session.receiverAvatar : session.callerAvatar;
 
-  // Initialize Media Devices & Simulated/Real WebRTC
+  // Real-time call session state listener
+  useEffect(() => {
+    // If caller, play outgoing dial tone while waiting
+    if (isCaller && connectionStatus === 'connecting') {
+      callSoundEffects.startOutgoingDialTone();
+    }
+
+    const unsub = kaminariBackend.listenToCall(session.id, (updatedCall) => {
+      if (updatedCall.status === 'connected') {
+        callSoundEffects.stopOutgoingDialTone();
+        callSoundEffects.playConnectedChime();
+        setConnectionStatus('connected');
+      } else if (
+        updatedCall.status === 'ended' ||
+        updatedCall.status === 'rejected' ||
+        updatedCall.status === 'busy'
+      ) {
+        callSoundEffects.stopOutgoingDialTone();
+        callSoundEffects.playCallEndedChime();
+        onEndCall(callDuration);
+      }
+    });
+
+    return () => {
+      callSoundEffects.stopOutgoingDialTone();
+      unsub();
+    };
+  }, [session.id, isCaller]);
+
+  // Initialize Media Devices
   useEffect(() => {
     let active = true;
 
@@ -68,18 +99,15 @@ export const CallScreen: React.FC<CallScreenProps> = ({
           localVideoRef.current.srcObject = stream;
         }
 
-        // Simulate fast signaling handshake
-        setTimeout(() => {
-          if (active) {
-            setConnectionStatus('connected');
-          }
-        }, 1500);
+        // If not caller, answerer immediately connects
+        if (!isCaller) {
+          setConnectionStatus('connected');
+        }
       } catch (err) {
         console.warn('Camera/Mic access not granted or unavailable:', err);
-        // Still allow connected state with fallback avatar
-        setTimeout(() => {
-          if (active) setConnectionStatus('connected');
-        }, 1200);
+        if (!isCaller) {
+          setConnectionStatus('connected');
+        }
       }
     }
 
@@ -94,7 +122,7 @@ export const CallScreen: React.FC<CallScreenProps> = ({
         screenStreamRef.current.getTracks().forEach((t) => t.stop());
       }
     };
-  }, [session.isVideo]);
+  }, [session.isVideo, isCaller]);
 
   // Duration Timer
   useEffect(() => {
@@ -158,6 +186,13 @@ export const CallScreen: React.FC<CallScreenProps> = ({
     }
   };
 
+  const handleEndCall = () => {
+    callSoundEffects.stopOutgoingDialTone();
+    callSoundEffects.playCallEndedChime();
+    kaminariBackend.endCall(session.id, callDuration);
+    onEndCall(callDuration);
+  };
+
   const formatDuration = (sec: number) => {
     const mins = Math.floor(sec / 60);
     const remaining = sec % 60;
@@ -171,7 +206,7 @@ export const CallScreen: React.FC<CallScreenProps> = ({
         <div className="relative">
           <div className="w-10 h-10 rounded-full electric-ring p-0.5">
             <img
-              src={peerAvatar}
+              src={peerAvatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80'}
               alt={peerName}
               className="w-full h-full rounded-full object-cover"
               referrerPolicy="no-referrer"
@@ -185,7 +220,7 @@ export const CallScreen: React.FC<CallScreenProps> = ({
             {peerName}
           </div>
           <div className="text-[10px] font-mono text-cyan-400">
-            {formatDuration(callDuration)}
+            {connectionStatus === 'connected' ? formatDuration(callDuration) : 'Ringing...'}
           </div>
         </div>
 
@@ -200,7 +235,7 @@ export const CallScreen: React.FC<CallScreenProps> = ({
 
         <button
           type="button"
-          onClick={() => onEndCall(callDuration)}
+          onClick={handleEndCall}
           className="p-2 rounded-2xl bg-gradient-to-r from-red-600 to-rose-500 hover:brightness-110 text-white transition-colors cursor-pointer"
           title="End Call"
         >
@@ -242,7 +277,7 @@ export const CallScreen: React.FC<CallScreenProps> = ({
               <span>
                 {connectionStatus === 'connected'
                   ? `Connected • ${formatDuration(callDuration)}`
-                  : 'Connecting...'}
+                  : 'Ringing / Waiting for answer...'}
               </span>
             </div>
           </div>
@@ -263,10 +298,9 @@ export const CallScreen: React.FC<CallScreenProps> = ({
         {/* Remote Participant View */}
         {session.isVideo ? (
           <div className="relative w-full h-full flex items-center justify-center bg-gradient-to-b from-[#0e0e1a] to-[#08080f]">
-            {/* Simulated Remote Video Feed with stylized cyberpunk camera feed */}
             <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
               <img
-                src={peerAvatar}
+                src={peerAvatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80'}
                 alt={peerName}
                 className="w-full h-full object-cover opacity-60 filter blur-xs scale-105"
                 referrerPolicy="no-referrer"
@@ -277,18 +311,21 @@ export const CallScreen: React.FC<CallScreenProps> = ({
               <div className="absolute flex flex-col items-center gap-4">
                 <div className="relative w-36 h-36 sm:w-44 sm:h-44 rounded-full p-1 bg-gradient-to-tr from-[#00f3ff] to-[#9d00ff] shadow-[0_0_50px_rgba(0,243,255,0.5)]">
                   <img
-                    src={peerAvatar}
+                    src={peerAvatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80'}
                     alt={peerName}
                     className="w-full h-full rounded-full object-cover border-4 border-[#0d0d12]"
                     referrerPolicy="no-referrer"
                   />
+                  {connectionStatus === 'connecting' && (
+                    <div className="absolute -inset-3 rounded-full border-2 border-cyan-400 animate-ping opacity-50" />
+                  )}
                 </div>
                 <div className="text-center">
                   <h3 className="text-lg font-bold text-white font-display">
                     {peerName}
                   </h3>
                   <p className="text-xs font-mono text-cyan-300">
-                    60 FPS • 12ms Packet Transit
+                    {connectionStatus === 'connected' ? '60 FPS • Direct Peer Relay' : 'Ringing peer...'}
                   </p>
                 </div>
               </div>
@@ -297,11 +334,10 @@ export const CallScreen: React.FC<CallScreenProps> = ({
         ) : (
           /* Pure Audio Call Screen with Electric Wave Visualizer */
           <div className="flex flex-col items-center justify-center p-8 text-center">
-            {/* Electric avatar with rotating energy rings */}
             <div className="relative mb-6">
               <div className="w-36 h-36 sm:w-48 sm:h-48 rounded-full p-1.5 bg-gradient-to-tr from-[#00f3ff] via-[#9d00ff] to-[#ff007f] shadow-[0_0_60px_rgba(0,243,255,0.4)]">
                 <img
-                  src={peerAvatar}
+                  src={peerAvatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80'}
                   alt={peerName}
                   className="w-full h-full rounded-full object-cover border-4 border-[#0d0d12]"
                   referrerPolicy="no-referrer"
@@ -316,10 +352,10 @@ export const CallScreen: React.FC<CallScreenProps> = ({
             <h3 className="text-2xl font-bold text-white mb-1">
               {peerName}
             </h3>
-            <p className="text-sm text-cyan-400">
+            <p className="text-sm text-cyan-400 font-mono">
               {connectionStatus === 'connected'
-                ? `Voice Call Connected`
-                : 'Connecting audio...'}
+                ? `Voice Stream Active`
+                : 'Ringing operative...'}
             </p>
 
             {/* Audio Waveform Bar Animation */}
@@ -327,7 +363,7 @@ export const CallScreen: React.FC<CallScreenProps> = ({
               {[40, 75, 90, 50, 100, 60, 85, 45, 95, 30, 80, 65, 90].map((h, i) => (
                 <motion.div
                   key={i}
-                  animate={{ height: connectionStatus === 'connected' ? [`${h * 0.3}%`, `${h}%`, `${h * 0.4}%`] : '20%' }}
+                  animate={{ height: connectionStatus === 'connected' ? [`${h * 0.3}%`, `${h}%`, `${h * 0.4}%`] : '15%' }}
                   transition={{ repeat: Infinity, duration: 0.8 + (i % 4) * 0.2, ease: 'easeInOut' }}
                   className="w-1.5 bg-gradient-to-t from-[#00f3ff] to-[#9d00ff] rounded-full"
                 />
@@ -336,7 +372,7 @@ export const CallScreen: React.FC<CallScreenProps> = ({
           </div>
         )}
 
-        {/* Local Stream PIP Thumbnail (in bottom corner) */}
+        {/* Local Stream PIP Thumbnail */}
         {session.isVideo && (
           <div className="absolute bottom-4 right-4 w-32 sm:w-44 aspect-video rounded-2xl bg-[#09090f] border border-white/20 overflow-hidden shadow-2xl z-20">
             {isVideoOff ? (
@@ -411,7 +447,7 @@ export const CallScreen: React.FC<CallScreenProps> = ({
         {/* End Call Button */}
         <button
           type="button"
-          onClick={() => onEndCall(callDuration)}
+          onClick={handleEndCall}
           className="p-4 rounded-2xl bg-gradient-to-r from-red-600 to-rose-500 hover:brightness-110 text-white shadow-[0_0_25px_rgba(244,63,94,0.4)] transition-all hover:scale-105 active:scale-95 cursor-pointer"
           title="End Call"
         >
@@ -421,3 +457,4 @@ export const CallScreen: React.FC<CallScreenProps> = ({
     </div>
   );
 };
+
